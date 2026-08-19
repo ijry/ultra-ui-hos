@@ -56,3 +56,5 @@ export { UPSearch, UPSearchProps, UPSearchOptions, UPSearchChangeEvent, UPSearch
 export { UPCodeInput, UPCodeInputProps, UPCodeInputOptions, UPCodeInputChangeEvent } from './src/main/ets/components/UPCodeInput';
 export { UPRow, UPRowProps, UPRowOptions } from './src/main/ets/components/UPRow';
 export { UPCol, UPColProps, UPColOptions } from './src/main/ets/components/UPCol';
+export { UPGrid, UPGridProps, UPGridOptions } from './src/main/ets/components/UPGrid';
+export { UPGridItem, UPGridItemProps, UPGridItemOptions, UPGridItemClickEvent } from './src/main/ets/components/UPGridItem';

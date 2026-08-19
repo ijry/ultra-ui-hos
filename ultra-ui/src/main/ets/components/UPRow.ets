@@ -36,7 +36,7 @@ export class UPRowProps {
 
 @Component
 export struct UPRow {
-  @Prop props: UPRowProps = new UPRowProps();
+  @Prop @Watch('onPropsChange') props: UPRowProps = new UPRowProps();
   @Provide('UPRowLayoutContext') rowContext: UPRowLayoutContext = new UPRowLayoutContext(0);
 
   @Builder
@@ -47,6 +47,14 @@ export struct UPRow {
   @BuilderParam contentBuilder: () => void = this.emptyContent;
 
   aboutToAppear(): void {
+    this.refreshContext();
+  }
+
+  onPropsChange(): void {
+    this.refreshContext();
+  }
+
+  private refreshContext(): void {
     this.rowContext = new UPRowLayoutContext(UPUnit.parse(this.props.gutter, 375, 0));
   }
 

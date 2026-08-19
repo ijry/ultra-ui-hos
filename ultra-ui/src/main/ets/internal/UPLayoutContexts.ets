@@ -51,3 +51,32 @@ export class UPRowLayoutContext {
     this.gutter = Math.max(0, gutter);
   }
 }
+
+/** Read-only layout context provided by UPGrid to nested UPGridItem children. */
+export class UPGridLayoutContext {
+  columns: number;
+  border: boolean;
+  align: string;
+  gap: number;
+  private nextIndex: number;
+
+  constructor(columns: number, border: boolean, align: string, gap: number) {
+    this.columns = Math.max(1, columns);
+    this.border = border;
+    this.align = align;
+    this.gap = Math.max(0, gap);
+    this.nextIndex = 0;
+  }
+
+  /** Reset the render-local item counter at the start of each Grid build pass. */
+  beginComposition(): void {
+    this.nextIndex = 0;
+  }
+
+  /** Allocate the next visual index for a nested item; never persisted globally. */
+  allocateIndex(): number {
+    const index: number = this.nextIndex;
+    this.nextIndex = this.nextIndex + 1;
+    return index;
+  }
+}

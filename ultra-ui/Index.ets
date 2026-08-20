@@ -58,3 +58,4 @@ export { UPRow, UPRowProps, UPRowOptions } from './src/main/ets/components/UPRow
 export { UPCol, UPColProps, UPColOptions } from './src/main/ets/components/UPCol';
 export { UPGrid, UPGridProps, UPGridOptions } from './src/main/ets/components/UPGrid';
 export { UPGridItem, UPGridItemProps, UPGridItemOptions, UPGridItemClickEvent } from './src/main/ets/components/UPGridItem';
+export { UPCard, UPCardProps, UPCardOptions, UPCardArea, UPCardClickEvent } from './src/main/ets/components/UPCard';

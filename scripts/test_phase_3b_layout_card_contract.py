@@ -30,6 +30,25 @@ GRID_DEFAULTS = {
     "UPGridItem": (("name", "null"), ("bgColor", "'transparent'")),
 }
 
+CARD_FIELDS = (
+    "full", "title", "titleColor", "titleSize", "subTitle", "subTitleColor", "subTitleSize",
+    "border", "index", "margin", "borderRadius", "headStyle", "bodyStyle", "footStyle",
+    "headBorderBottom", "footBorderTop", "thumb", "thumbWidth", "thumbCircle", "padding",
+    "paddingHead", "paddingBody", "paddingFoot", "showHead", "showFoot", "boxShadow",
+    "customStyle", "contentBuilder", "headBuilder", "footBuilder",
+    "onClick", "onHeadClick", "onBodyClick", "onFootClick",
+)
+
+CARD_DEFAULTS = (
+    ("full", "false"), ("title", "''"), ("titleColor", "'#303133'"), ("titleSize", "'15px'"),
+    ("subTitle", "''"), ("subTitleColor", "'#909399'"), ("subTitleSize", "'13px'"),
+    ("border", "true"), ("index", "''"), ("margin", "'15px'"), ("borderRadius", "'8px'"),
+    ("headBorderBottom", "true"), ("footBorderTop", "true"), ("thumb", "''"),
+    ("thumbWidth", "'30px'"), ("thumbCircle", "false"), ("padding", "'15px'"),
+    ("paddingHead", "''"), ("paddingBody", "''"), ("paddingFoot", "''"),
+    ("showHead", "true"), ("showFoot", "true"), ("boxShadow", "'none'"),
+)
+
 FORBIDDEN = ("WebView", "FastView", ".xyfv", "http://", "https://", "@ohos.net", "request(")
 
 
@@ -91,6 +110,25 @@ def main() -> None:
     assert "columnsTemplate" in grid, "UPGrid must set columnsTemplate"
     assert "columnsGap" in grid, "UPGrid must set columnsGap"
     assert "rowsGap" in grid, "UPGrid must set rowsGap"
+
+    card = read(COMP / "UPCard.ets")
+    assert "class UPCardProps" in card, "missing UPCardProps"
+    assert "export interface UPCardOptions" in card, "missing UPCardOptions"
+    assert re.search(r"export struct UPCard\b", card), "missing UPCard struct"
+    for field in CARD_FIELDS:
+        assert_field(card, field, "UPCard")
+    for field, value in CARD_DEFAULTS:
+        assert_default(card, field, value, "UPCard")
+    assert "UPCardArea" in card, "UPCard missing UPCardArea"
+    assert "UPCardClickEvent" in card, "UPCard missing UPCardClickEvent"
+    assert re.search(r"area\s*:\s*UPCardArea", card), "event area must be UPCardArea"
+    assert re.search(r"index\s*:\s*UPRawValue", card), "event index must be UPRawValue"
+    assert "UPImage" in card, "UPCard must render thumb through UPImage"
+    assert "resource://" in card or "file://" in card or "$rawfile:" in card, "UPCard must guard local image sources"
+    assert "UPCard" in index and "UPCardProps" in index and "UPCardOptions" in index, "UPCard exports missing"
+    assert "UPCardArea" in index and "UPCardClickEvent" in index, "UPCard event exports missing"
+    for forbidden in FORBIDDEN:
+        assert forbidden not in card, f"UPCard contains forbidden token {forbidden!r}"
 
     print("phase 3B layout/card contract: PASS")
 

@@ -59,3 +59,7 @@ export { UPCol, UPColProps, UPColOptions } from './src/main/ets/components/UPCol
 export { UPGrid, UPGridProps, UPGridOptions } from './src/main/ets/components/UPGrid';
 export { UPGridItem, UPGridItemProps, UPGridItemOptions, UPGridItemClickEvent } from './src/main/ets/components/UPGridItem';
 export { UPCard, UPCardProps, UPCardOptions, UPCardArea, UPCardClickEvent } from './src/main/ets/components/UPCard';
+export { UPCircleProgress, UPCircleProgressProps, UPCircleProgressOptions } from './src/main/ets/components/UPCircleProgress';
+export { UPAlert, UPAlertProps, UPAlertOptions, UPAlertType, UPAlertEffect, UPAlertVisibleEvent, UPAlertClickEvent } from './src/main/ets/components/UPAlert';
+export { UPNotify, UPNotifyProps, UPNotifyOptions } from './src/main/ets/components/UPNotify';
+export { UPNoticeBar, UPNoticeBarProps, UPNoticeBarOptions, UPNoticeBarClickEvent } from './src/main/ets/components/UPNoticeBar';

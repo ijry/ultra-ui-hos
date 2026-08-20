@@ -40,6 +40,16 @@ COMPONENTS = {
         "mode", "icon", "text", "duration", "scrollTop", "top", "bottom",
         "right", "zIndex", "iconStyle", "customStyle", "onClick", "onBackToTop",
     ),
+    "UPCollapse": (
+        "value", "modelValue", "accordion", "border", "arrow", "disabled", "clickable",
+        "customStyle", "onChange", "onValueChange", "contentBuilder",
+    ),
+    "UPCollapseItem": (
+        "title", "titleStyle", "value", "label", "disabled", "isLink", "clickable",
+        "border", "align", "name", "icon", "duration", "showRight", "iconStyle",
+        "rightIconStyle", "cellCustomStyle", "cellCustomClass", "customStyle", "isOpen",
+        "open", "onClick", "contentBuilder",
+    ),
 }
 
 DEMOS = {
@@ -49,6 +59,8 @@ DEMOS = {
     "notice-bar": "NoticeBarDemo.ets",
     "action-sheet": "ActionSheetDemo.ets",
     "back-top": "BackTopDemo.ets",
+    "collapse": "CollapseDemo.ets",
+    "collapse-item": "CollapseItemDemo.ets",
 }
 
 DEFAULTS = {
@@ -58,6 +70,8 @@ DEFAULTS = {
     "UPNoticeBar": (("show", "true"), ("direction", "'row'"), ("mode", "''")),
     "UPActionSheet": (("show", "false"), ("closeOnClickAction", "true"), ("closeOnClickOverlay", "true")),
     "UPBackTop": (("mode", "'circle'"), ("scrollTop", "0"), ("top", "400")),
+    "UPCollapse": (("accordion", "false"), ("disabled", "false"), ("clickable", "true")),
+    "UPCollapseItem": (("disabled", "false"), ("clickable", "true"), ("isOpen", "false"), ("open", "undefined")),
 }
 
 FORBIDDEN = (
@@ -115,11 +129,21 @@ def main() -> None:
     )
     assert "onBackToTop" in sources["UPBackTop"], "back-top callback is required"
     assert "return 'circle'" in sources["UPBackTop"], "invalid back-top modes must fall back to circle"
+    context = read(COMPONENTS_DIR.parent / "internal/UPInteractionContexts.ets")
+    for method in ("beginComposition", "itemName", "isOpen", "requestToggle", "itemCount"):
+        assert method in context, f"collapse context missing {method}"
+    assert "accordion" in sources["UPCollapse"] and "modelValue" in sources["UPCollapse"]
+    assert "modelValue !== null" in sources["UPCollapse"] or "modelValue !== undefined" in sources["UPCollapse"], (
+        "collapse must preserve modelValue/value priority"
+    )
+    assert "contentBuilder" in sources["UPCollapseItem"], "collapse item content builder is required"
+    assert "@Consume" in sources["UPCollapseItem"], "collapse item must consume a group context"
 
     catalog = read(CATALOG)
     page = read(PAGE)
     assert "Components F" in catalog, "sample catalog missing Components F"
     assert "Components G" in catalog, "sample catalog missing Components G"
+    assert "Components H" in catalog, "sample catalog missing Components H"
     for route, filename in DEMOS.items():
         assert re.search(rf"['\"]{re.escape(route)}['\"]", catalog), f"missing route {route}"
         demo = read(DEMOS_DIR / filename)

@@ -65,3 +65,6 @@ export { UPNotify, UPNotifyProps, UPNotifyOptions } from './src/main/ets/compone
 export { UPNoticeBar, UPNoticeBarProps, UPNoticeBarOptions, UPNoticeBarClickEvent } from './src/main/ets/components/UPNoticeBar';
 export { UPActionSheet, UPActionSheetProps, UPActionSheetOptions, UPActionSheetAction, UPActionSheetSelectEvent, UPActionSheetCloseReason } from './src/main/ets/components/UPActionSheet';
 export { UPBackTop, UPBackTopProps, UPBackTopOptions, UPBackTopEvent } from './src/main/ets/components/UPBackTop';
+export { UPCollapse, UPCollapseProps, UPCollapseOptions, UPCollapseChangeEvent } from './src/main/ets/components/UPCollapse';
+export { UPCollapseItem, UPCollapseItemProps, UPCollapseItemOptions, UPCollapseItemClickEvent } from './src/main/ets/components/UPCollapseItem';
+export { UPCollapseValue } from './src/main/ets/internal/UPInteractionContexts';

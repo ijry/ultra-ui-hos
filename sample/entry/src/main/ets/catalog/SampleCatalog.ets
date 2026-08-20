@@ -76,6 +76,10 @@ export const SAMPLE_GROUPS: Array<SampleGroup> = [
     new SampleItem('action-sheet', '操作面板 ActionSheet', '受控遮罩、选择和取消'),
     new SampleItem('back-top', '返回顶部 BackTop', '滚动阈值与本地回调'),
   ]),
+  new SampleGroup('Components H', [
+    new SampleItem('collapse', '折叠面板 Collapse', '多开受控值与切换回调'),
+    new SampleItem('collapse-item', '折叠项 CollapseItem', '独立展开值与内容 Builder'),
+  ]),
   new SampleGroup('Components E', [
     new SampleItem('row', '行布局 Row', '12 栅格、间距、偏移与换行'),
     new SampleItem('col', '列布局 Col', '独立回退、跨度和内容对齐'),

@@ -44,6 +44,8 @@ import { CircleProgressDemo } from '../demos/CircleProgressDemo';
 import { AlertDemo } from '../demos/AlertDemo';
 import { NotifyDemo } from '../demos/NotifyDemo';
 import { NoticeBarDemo } from '../demos/NoticeBarDemo';
+import { ActionSheetDemo } from '../demos/ActionSheetDemo';
+import { BackTopDemo } from '../demos/BackTopDemo';
 
 import { SampleScaffold, SampleScaffoldProps } from '../shared/SampleScaffold';
 
@@ -80,6 +82,10 @@ export struct SamplePage {
       NotifyDemo()
     } else if (this.props.route === 'notice-bar') {
       NoticeBarDemo()
+    } else if (this.props.route === 'action-sheet') {
+      ActionSheetDemo()
+    } else if (this.props.route === 'back-top') {
+      BackTopDemo()
     } else if (this.props.route === 'button') {
       ButtonDemo()
     } else if (this.props.route === 'cell') {
@@ -173,6 +179,8 @@ export struct SamplePage {
       case 'alert': return '提示条 Alert';
       case 'notify': return '通知 Notify';
       case 'notice-bar': return '公告栏 NoticeBar';
+      case 'action-sheet': return '操作面板 ActionSheet';
+      case 'back-top': return '返回顶部 BackTop';
       case 'button': return '按钮 Button';
       case 'cell': return '单元格 Cell';
       case 'icon': return '图标 Icon';

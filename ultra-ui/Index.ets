@@ -63,3 +63,5 @@ export { UPCircleProgress, UPCircleProgressProps, UPCircleProgressOptions } from
 export { UPAlert, UPAlertProps, UPAlertOptions, UPAlertType, UPAlertEffect, UPAlertVisibleEvent, UPAlertClickEvent } from './src/main/ets/components/UPAlert';
 export { UPNotify, UPNotifyProps, UPNotifyOptions } from './src/main/ets/components/UPNotify';
 export { UPNoticeBar, UPNoticeBarProps, UPNoticeBarOptions, UPNoticeBarClickEvent } from './src/main/ets/components/UPNoticeBar';
+export { UPActionSheet, UPActionSheetProps, UPActionSheetOptions, UPActionSheetAction, UPActionSheetSelectEvent, UPActionSheetCloseReason } from './src/main/ets/components/UPActionSheet';
+export { UPBackTop, UPBackTopProps, UPBackTopOptions, UPBackTopEvent } from './src/main/ets/components/UPBackTop';

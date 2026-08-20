@@ -72,6 +72,10 @@ export const SAMPLE_GROUPS: Array<SampleGroup> = [
     new SampleItem('notify', '通知 Notify', '受控顶部通知与关闭回调'),
     new SampleItem('notice-bar', '公告栏 NoticeBar', '本地公告、链接和关闭'),
   ]),
+  new SampleGroup('Components G', [
+    new SampleItem('action-sheet', '操作面板 ActionSheet', '受控遮罩、选择和取消'),
+    new SampleItem('back-top', '返回顶部 BackTop', '滚动阈值与本地回调'),
+  ]),
   new SampleGroup('Components E', [
     new SampleItem('row', '行布局 Row', '12 栅格、间距、偏移与换行'),
     new SampleItem('col', '列布局 Col', '独立回退、跨度和内容对齐'),

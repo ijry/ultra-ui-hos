@@ -30,6 +30,16 @@ COMPONENTS = {
         "show", "text", "direction", "mode", "url", "linkType",
         "onShowChange", "onClick", "onClose", "customStyle",
     ),
+    "UPActionSheet": (
+        "show", "title", "description", "actions", "nameKey", "subnameKey",
+        "cancelText", "closeOnClickAction", "safeAreaInsetBottom", "openType",
+        "closeOnClickOverlay", "round", "wrapMaxHeight", "index", "customStyle",
+        "onShowChange", "onSelect", "onCancel", "onClose", "onClickOverlay",
+    ),
+    "UPBackTop": (
+        "mode", "icon", "text", "duration", "scrollTop", "top", "bottom",
+        "right", "zIndex", "iconStyle", "customStyle", "onClick", "onBackToTop",
+    ),
 }
 
 DEMOS = {
@@ -37,6 +47,8 @@ DEMOS = {
     "alert": "AlertDemo.ets",
     "notify": "NotifyDemo.ets",
     "notice-bar": "NoticeBarDemo.ets",
+    "action-sheet": "ActionSheetDemo.ets",
+    "back-top": "BackTopDemo.ets",
 }
 
 DEFAULTS = {
@@ -44,6 +56,8 @@ DEFAULTS = {
     "UPAlert": (("type", "'warning'"), ("effect", "'light'"), ("value", "true")),
     "UPNotify": (("show", "false"), ("type", "'primary'")),
     "UPNoticeBar": (("show", "true"), ("direction", "'row'"), ("mode", "''")),
+    "UPActionSheet": (("show", "false"), ("closeOnClickAction", "true"), ("closeOnClickOverlay", "true")),
+    "UPBackTop": (("mode", "'circle'"), ("scrollTop", "0"), ("top", "400")),
 }
 
 FORBIDDEN = (
@@ -90,10 +104,22 @@ def main() -> None:
     assert "modelValue !== null" in sources["UPAlert"] or "modelValue !== undefined" in sources["UPAlert"], (
         "alert must preserve modelValue/value priority"
     )
+    assert "UPActionSheetAction" in sources["UPActionSheet"], "action sheet action type is required"
+    assert "UPActionSheetSelectEvent" in sources["UPActionSheet"], "action sheet select event is required"
+    assert "disabled" in sources["UPActionSheet"] and "loading" in sources["UPActionSheet"], (
+        "action sheet must guard disabled and loading actions"
+    )
+    assert "onCancel" in sources["UPActionSheet"] and "onClickOverlay" in sources["UPActionSheet"]
+    assert "scrollTop" in sources["UPBackTop"] and ">=" in sources["UPBackTop"], (
+        "back-top must use the controlled scroll threshold"
+    )
+    assert "onBackToTop" in sources["UPBackTop"], "back-top callback is required"
+    assert "return 'circle'" in sources["UPBackTop"], "invalid back-top modes must fall back to circle"
 
     catalog = read(CATALOG)
     page = read(PAGE)
     assert "Components F" in catalog, "sample catalog missing Components F"
+    assert "Components G" in catalog, "sample catalog missing Components G"
     for route, filename in DEMOS.items():
         assert re.search(rf"['\"]{re.escape(route)}['\"]", catalog), f"missing route {route}"
         demo = read(DEMOS_DIR / filename)

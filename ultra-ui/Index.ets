@@ -68,3 +68,5 @@ export { UPBackTop, UPBackTopProps, UPBackTopOptions, UPBackTopEvent } from './s
 export { UPCollapse, UPCollapseProps, UPCollapseOptions, UPCollapseChangeEvent } from './src/main/ets/components/UPCollapse';
 export { UPCollapseItem, UPCollapseItemProps, UPCollapseItemOptions, UPCollapseItemClickEvent } from './src/main/ets/components/UPCollapseItem';
 export { UPCollapseValue } from './src/main/ets/internal/UPInteractionContexts';
+export { UPDropdown, UPDropdownProps, UPDropdownOptions, UPDropdownDirection } from './src/main/ets/components/UPDropdown';
+export { UPDropdownItem, UPDropdownItemProps, UPDropdownItemOptions, UPDropdownOption, UPDropdownItemSelectEvent } from './src/main/ets/components/UPDropdownItem';

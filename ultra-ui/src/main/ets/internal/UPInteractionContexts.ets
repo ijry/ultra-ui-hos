@@ -45,3 +45,45 @@ export class UPCollapseContext {
     this.onChange?.({ value: next, name, open: !wasOpen });
   }
 }
+
+export class UPDropdownContext {
+  private currentOpenIndex: number = -1;
+  private nextIndex: number = 0;
+  private onOpenChange?: (index: number) => void;
+  private onOpen?: (index: number) => void;
+  private onClose?: () => void;
+
+  beginComposition(openIndex: number = -1, onOpenChange?: (index: number) => void,
+    onOpen?: (index: number) => void, onClose?: () => void): void {
+    this.currentOpenIndex = Number.isFinite(openIndex) ? openIndex : -1;
+    this.nextIndex = 0;
+    this.onOpenChange = onOpenChange;
+    this.onOpen = onOpen;
+    this.onClose = onClose;
+  }
+
+  itemIndex(): number {
+    return this.nextIndex++;
+  }
+
+  openIndex(): number {
+    return this.currentOpenIndex;
+  }
+
+  isOpen(index: number): boolean {
+    return this.currentOpenIndex === index;
+  }
+
+  requestOpen(index: number): void {
+    const nextIndex: number = this.currentOpenIndex === index ? -1 : index;
+    this.currentOpenIndex = nextIndex;
+    this.onOpenChange?.(nextIndex);
+    if (nextIndex >= 0) this.onOpen?.(nextIndex);
+    else this.onClose?.();
+  }
+
+  close(): void {
+    if (this.currentOpenIndex < 0) return;
+    this.requestOpen(-1);
+  }
+}

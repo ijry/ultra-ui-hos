@@ -48,6 +48,8 @@ import { ActionSheetDemo } from '../demos/ActionSheetDemo';
 import { BackTopDemo } from '../demos/BackTopDemo';
 import { CollapseDemo } from '../demos/CollapseDemo';
 import { CollapseItemDemo } from '../demos/CollapseItemDemo';
+import { DropdownDemo } from '../demos/DropdownDemo';
+import { DropdownItemDemo } from '../demos/DropdownItemDemo';
 
 import { SampleScaffold, SampleScaffoldProps } from '../shared/SampleScaffold';
 
@@ -92,6 +94,10 @@ export struct SamplePage {
       CollapseDemo()
     } else if (this.props.route === 'collapse-item') {
       CollapseItemDemo()
+    } else if (this.props.route === 'dropdown') {
+      DropdownDemo()
+    } else if (this.props.route === 'dropdown-item') {
+      DropdownItemDemo()
     } else if (this.props.route === 'button') {
       ButtonDemo()
     } else if (this.props.route === 'cell') {
@@ -189,6 +195,8 @@ export struct SamplePage {
       case 'back-top': return '返回顶部 BackTop';
       case 'collapse': return '折叠面板 Collapse';
       case 'collapse-item': return '折叠项 CollapseItem';
+      case 'dropdown': return '下拉菜单 Dropdown';
+      case 'dropdown-item': return '下拉项 DropdownItem';
       case 'button': return '按钮 Button';
       case 'cell': return '单元格 Cell';
       case 'icon': return '图标 Icon';

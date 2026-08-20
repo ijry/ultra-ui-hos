@@ -50,6 +50,16 @@ COMPONENTS = {
         "rightIconStyle", "cellCustomStyle", "cellCustomClass", "customStyle", "isOpen",
         "open", "onClick", "contentBuilder",
     ),
+    "UPDropdown": (
+        "activeColor", "inactiveColor", "closeOnClickMask", "closeOnClickSelf", "duration",
+        "height", "borderBottom", "titleSize", "borderRadius", "menuIcon", "menuIconSize",
+        "customStyle", "closeOnClickOverlay", "direction", "menu", "bgColor", "openIndex",
+        "onOpenChange", "onOpen", "onClose", "contentBuilder",
+    ),
+    "UPDropdownItem": (
+        "modelValue", "value", "title", "options", "disabled", "height", "closeOnClickOverlay",
+        "customStyle", "multiple", "onValueChange", "onChange", "onSelect",
+    ),
 }
 
 DEMOS = {
@@ -61,6 +71,8 @@ DEMOS = {
     "back-top": "BackTopDemo.ets",
     "collapse": "CollapseDemo.ets",
     "collapse-item": "CollapseItemDemo.ets",
+    "dropdown": "DropdownDemo.ets",
+    "dropdown-item": "DropdownItemDemo.ets",
 }
 
 DEFAULTS = {
@@ -72,6 +84,8 @@ DEFAULTS = {
     "UPBackTop": (("mode", "'circle'"), ("scrollTop", "0"), ("top", "400")),
     "UPCollapse": (("accordion", "false"), ("disabled", "false"), ("clickable", "true")),
     "UPCollapseItem": (("disabled", "false"), ("clickable", "true"), ("isOpen", "false"), ("open", "undefined")),
+    "UPDropdown": (("openIndex", "-1"), ("direction", "'down'"), ("closeOnClickMask", "true")),
+    "UPDropdownItem": (("disabled", "false"), ("multiple", "false")),
 }
 
 FORBIDDEN = (
@@ -138,6 +152,19 @@ def main() -> None:
     )
     assert "contentBuilder" in sources["UPCollapseItem"], "collapse item content builder is required"
     assert "@Consume" in sources["UPCollapseItem"], "collapse item must consume a group context"
+    dropdown_context = context
+    for method in ("openIndex", "requestOpen", "close", "isOpen"):
+        assert method in dropdown_context, f"dropdown context missing {method}"
+    assert "UPDropdownOption" in sources["UPDropdownItem"], "dropdown option type is required"
+    assert "UPDropdownItemSelectEvent" in sources["UPDropdownItem"], "dropdown select event is required"
+    assert "modelValue !== null" in sources["UPDropdownItem"] or "modelValue !== undefined" in sources["UPDropdownItem"], (
+        "dropdown item must preserve modelValue/value priority"
+    )
+    assert "disabled" in sources["UPDropdownItem"] and "return" in sources["UPDropdownItem"], (
+        "dropdown item must guard disabled options"
+    )
+    assert "requestOpen(-1)" in sources["UPDropdownItem"], "single-select dropdown must request close"
+    assert "multiple" in sources["UPDropdownItem"], "multiple-select dropdown must retain open state"
 
     catalog = read(CATALOG)
     page = read(PAGE)

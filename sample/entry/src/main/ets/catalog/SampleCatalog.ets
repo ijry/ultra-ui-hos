@@ -79,6 +79,8 @@ export const SAMPLE_GROUPS: Array<SampleGroup> = [
   new SampleGroup('Components H', [
     new SampleItem('collapse', '折叠面板 Collapse', '多开受控值与切换回调'),
     new SampleItem('collapse-item', '折叠项 CollapseItem', '独立展开值与内容 Builder'),
+    new SampleItem('dropdown', '下拉菜单 Dropdown', '受控打开索引与遮罩关闭'),
+    new SampleItem('dropdown-item', '下拉项 DropdownItem', '单选、多选与禁用选项'),
   ]),
   new SampleGroup('Components E', [
     new SampleItem('row', '行布局 Row', '12 栅格、间距、偏移与换行'),

@@ -11,6 +11,8 @@ COMPONENTS_DIR = ROOT / "ultra-ui/src/main/ets/components"
 DEMOS_DIR = ROOT / "sample/entry/src/main/ets/demos"
 CATALOG = ROOT / "sample/entry/src/main/ets/catalog/SampleCatalog.ets"
 PAGE = ROOT / "sample/entry/src/main/ets/pages/SamplePage.ets"
+NOTE = ROOT / "docs/compatibility/phase-4a.md"
+README = ROOT / "README.md"
 
 COMPONENTS = {
     "UPCircleProgress": (
@@ -184,6 +186,19 @@ def main() -> None:
     circle_demo = read(DEMOS_DIR / "CircleProgressDemo.ets")
     for percentage in (0, 30, 100):
         assert f"percentage: {percentage}" in circle_demo, f"circle demo missing {percentage}% state"
+
+    note = read(NOTE)
+    for phrase in (
+        "阶段 4A", "API 24", "5.0.0(12)", *COMPONENTS.keys(),
+        "页面受控状态", "无网络", "设备验证", "skipped",
+    ):
+        assert phrase in note, f"phase-4a note missing {phrase}"
+
+    readme = read(README)
+    for phrase in (
+        "阶段 4A", "54 个已实现组件/控制器", "52 条组件示例路由", "phase-4a.md",
+    ):
+        assert phrase in readme, f"README missing {phrase}"
 
     print("phase 4A native interaction contract: PASS")
 

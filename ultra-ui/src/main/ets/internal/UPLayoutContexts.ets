@@ -79,4 +79,9 @@ export class UPGridLayoutContext {
     this.nextIndex = this.nextIndex + 1;
     return index;
   }
+
+  /** Number of GridItem children allocated during the current composition. */
+  itemCount(): number {
+    return this.nextIndex;
+  }
 }

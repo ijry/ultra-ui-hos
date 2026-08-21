@@ -50,18 +50,35 @@ import { CollapseDemo } from '../demos/CollapseDemo';
 import { CollapseItemDemo } from '../demos/CollapseItemDemo';
 import { DropdownDemo } from '../demos/DropdownDemo';
 import { DropdownItemDemo } from '../demos/DropdownItemDemo';
+import { NavbarDemo, NavbarDemoProps } from '../demos/NavbarDemo';
+import { NavbarMiniDemo, NavbarMiniDemoProps } from '../demos/NavbarMiniDemo';
+import { StatusBarDemo } from '../demos/StatusBarDemo';
+import { SafeBottomDemo } from '../demos/SafeBottomDemo';
+import { TabsDemo } from '../demos/TabsDemo';
+import { TabsItemDemo } from '../demos/TabsItemDemo';
+import { SubsectionDemo } from '../demos/SubsectionDemo';
+import { StepsDemo } from '../demos/StepsDemo';
+import { StepsItemDemo } from '../demos/StepsItemDemo';
+import { ListDemo } from '../demos/ListDemo';
+import { ListItemDemo } from '../demos/ListItemDemo';
+import { IndexListDemo } from '../demos/IndexListDemo';
+import { IndexItemDemo } from '../demos/IndexItemDemo';
+import { IndexAnchorDemo } from '../demos/IndexAnchorDemo';
+import { ScrollListDemo } from '../demos/ScrollListDemo';
 
 import { SampleScaffold, SampleScaffoldProps } from '../shared/SampleScaffold';
 
 export interface SamplePageOptions {
   route?: string;
   onBack?: () => void;
+  onRelaunch?: (url: string) => void;
 }
 
 /** Props container keeps route callbacks compatible with ArkTS V1 decorators. */
 export class SamplePageProps {
   route: string = 'button';
   onBack?: () => void;
+  onRelaunch?: (url: string) => void;
 
   constructor(options?: SamplePageOptions) {
     if (options === undefined) {
@@ -69,6 +86,7 @@ export class SamplePageProps {
     }
     this.route = options.route ?? this.route;
     this.onBack = options.onBack;
+    this.onRelaunch = options.onRelaunch;
   }
 }
 
@@ -78,7 +96,37 @@ export struct SamplePage {
 
   @Builder
   private demo() {
-    if (this.props.route === 'circle-progress') {
+    if (this.props.route === 'navbar') {
+      NavbarDemo({ props: new NavbarDemoProps({ onBack: this.props.onBack, onRelaunch: this.props.onRelaunch }) })
+    } else if (this.props.route === 'navbar-mini') {
+      NavbarMiniDemo({ props: new NavbarMiniDemoProps({ onBack: this.props.onBack, onRelaunch: this.props.onRelaunch }) })
+    } else if (this.props.route === 'status-bar') {
+      StatusBarDemo()
+    } else if (this.props.route === 'safe-bottom') {
+      SafeBottomDemo()
+    } else if (this.props.route === 'tabs') {
+      TabsDemo()
+    } else if (this.props.route === 'tabs-item') {
+      TabsItemDemo()
+    } else if (this.props.route === 'subsection') {
+      SubsectionDemo()
+    } else if (this.props.route === 'steps') {
+      StepsDemo()
+    } else if (this.props.route === 'steps-item') {
+      StepsItemDemo()
+    } else if (this.props.route === 'list') {
+      ListDemo()
+    } else if (this.props.route === 'list-item') {
+      ListItemDemo()
+    } else if (this.props.route === 'index-list') {
+      IndexListDemo()
+    } else if (this.props.route === 'index-item') {
+      IndexItemDemo()
+    } else if (this.props.route === 'index-anchor') {
+      IndexAnchorDemo()
+    } else if (this.props.route === 'scroll-list') {
+      ScrollListDemo()
+    } else if (this.props.route === 'circle-progress') {
       CircleProgressDemo()
     } else if (this.props.route === 'alert') {
       AlertDemo()
@@ -187,6 +235,21 @@ export struct SamplePage {
 
   private title(): string {
     switch (this.props.route) {
+      case 'navbar': return '导航栏 Navbar';
+      case 'navbar-mini': return '迷你导航栏 NavbarMini';
+      case 'status-bar': return '状态栏 StatusBar';
+      case 'safe-bottom': return '安全底部 SafeBottom';
+      case 'tabs': return '标签 Tabs';
+      case 'tabs-item': return '标签项 TabsItem';
+      case 'subsection': return '分段器 Subsection';
+      case 'steps': return '步骤条 Steps';
+      case 'steps-item': return '步骤项 StepsItem';
+      case 'list': return '列表 List';
+      case 'list-item': return '列表项 ListItem';
+      case 'index-list': return '索引列表 IndexList';
+      case 'index-item': return '索引项 IndexItem';
+      case 'index-anchor': return '索引锚点 IndexAnchor';
+      case 'scroll-list': return '横向列表 ScrollList';
       case 'circle-progress': return '环形进度 CircleProgress';
       case 'alert': return '提示条 Alert';
       case 'notify': return '通知 Notify';

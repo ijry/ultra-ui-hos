@@ -88,5 +88,24 @@ export const SAMPLE_GROUPS: Array<SampleGroup> = [
     new SampleItem('grid', '宫格 Grid', '列数、间隙、边框与末行对齐'),
     new SampleItem('grid-item', '宫格项 GridItem', '名称、索引回退和点击事件'),
     new SampleItem('card', '卡片 Card', '本地缩略图、分区 Builder 与点击')
+  ]),
+  new SampleGroup('Components I', [
+    new SampleItem('navbar', '导航栏 Navbar', '标题、左右区域、自动返回与占位'),
+    new SampleItem('navbar-mini', '迷你导航栏 NavbarMini', '返回、首页重启与透明背景'),
+    new SampleItem('status-bar', '状态栏 StatusBar', '顶部安全区高度与背景'),
+    new SampleItem('safe-bottom', '安全底部 SafeBottom', '底部安全区回退与内容 Builder'),
+    new SampleItem('tabs', '标签 Tabs', '受控索引、禁用项、长按与滚动'),
+    new SampleItem('tabs-item', '标签项 TabsItem', '独立内容 Builder 与安全呈现'),
+    new SampleItem('subsection', '分段器 Subsection', 'button/subsection 模式与禁用项'),
+    new SampleItem('steps', '步骤条 Steps', '横向、纵向、点状与错误状态'),
+    new SampleItem('steps-item', '步骤项 StepsItem', '独立步骤项与 Builder 回退')
+  ]),
+  new SampleGroup('Components J', [
+    new SampleItem('list', '列表 List', '阈值、锚点、滚动与刷新请求'),
+    new SampleItem('list-item', '列表项 ListItem', '独立回退与原生 ListItem'),
+    new SampleItem('index-list', '索引列表 IndexList', '受控索引、侧边栏与吸顶分组'),
+    new SampleItem('index-item', '索引项 IndexItem', '显式标题与内容 Builder'),
+    new SampleItem('index-anchor', '索引锚点 IndexAnchor', '默认标题条与自定义样式'),
+    new SampleItem('scroll-list', '横向列表 ScrollList', '横向滚动、边界事件与比例指示器')
   ])
 ];

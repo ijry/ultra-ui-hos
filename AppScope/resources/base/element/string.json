@@ -1,0 +1,8 @@
+{
+  "string": [
+    { "name": "app_name", "value": "UltraUI 鸿蒙示例" },
+    { "name": "module_desc", "value": "UltraUI 示例入口模块" },
+    { "name": "EntryAbility_desc", "value": "UltraUI 示例应用入口" },
+    { "name": "EntryAbility_label", "value": "UltraUI" }
+  ]
+}

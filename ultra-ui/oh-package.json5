@@ -1,0 +1,9 @@
+{
+  "name": "@lingyun/ultra-ui-hos",
+  "version": "1.0.0",
+  "description": "uview-plus compatible native HarmonyOS NEXT components",
+  "main": "Index.ets",
+  "author": "Lingyun",
+  "license": "Apache-2.0",
+  "dependencies": {}
+}

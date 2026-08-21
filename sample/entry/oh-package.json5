@@ -1,0 +1,9 @@
+{
+  "name": "entry",
+  "version": "1.0.0",
+  "description": "UltraUI HarmonyOS NEXT sample application",
+  "main": "",
+  "dependencies": {
+    "@lingyun/ultra-ui-hos": "file:../../ultra-ui/build/default/outputs/default/ultra_ui.har"
+  }
+}

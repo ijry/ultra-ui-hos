@@ -1,0 +1,8 @@
+{
+  "module": {
+    "name": "ultra_ui",
+    "type": "har",
+    "description": "uview-plus HarmonyOS NEXT native component library",
+    "deviceTypes": ["phone"]
+  }
+}

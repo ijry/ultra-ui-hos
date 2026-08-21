@@ -13,3 +13,4 @@
 .appanalyzer
 .DS_Store
 /.tmp
+BuildProfile.ets

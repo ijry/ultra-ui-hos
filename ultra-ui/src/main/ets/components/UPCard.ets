@@ -128,6 +128,23 @@ export class UPCardProps {
 }
 
 @Component
+struct UPCardBuilderRegion {
+  @Builder
+  private emptyContent() {
+    Row().width(0).height(0)
+  }
+
+  @BuilderParam contentBuilder: () => void = this.emptyContent;
+
+  build() {
+    Column() {
+      this.contentBuilder()
+    }
+    .width('100%')
+  }
+}
+
+@Component
 export struct UPCard {
   @Prop props: UPCardProps = new UPCardProps();
 
@@ -137,8 +154,6 @@ export struct UPCard {
   }
 
   @BuilderParam contentBuilder: () => void = this.emptyContent;
-  @BuilderParam headBuilder: () => void = this.emptyContent;
-  @BuilderParam footBuilder: () => void = this.emptyContent;
 
   private textValue(value: UPRawValue): string {
     return value === null || value === undefined ? '' : String(value);
@@ -285,11 +300,11 @@ export struct UPCard {
   }
 
   private hasCustomHead(): boolean {
-    return this.props.headBuilder !== undefined || this.headBuilder !== this.emptyContent;
+    return this.props.headBuilder !== undefined;
   }
 
   private hasCustomFoot(): boolean {
-    return this.props.footBuilder !== undefined || this.footBuilder !== this.emptyContent;
+    return this.props.footBuilder !== undefined;
   }
 
   private headVisible(): boolean {
@@ -358,7 +373,7 @@ export struct UPCard {
     if (this.headVisible()) {
       Column() {
         if (this.hasCustomHead()) {
-          this.headBuilder()
+          UPCardBuilderRegion({ contentBuilder: this.props.headBuilder })
         } else {
           this.defaultHead()
         }
@@ -383,7 +398,7 @@ export struct UPCard {
   private footRegion() {
     if (this.footVisible()) {
       Column() {
-        this.footBuilder()
+        UPCardBuilderRegion({ contentBuilder: this.props.footBuilder })
       }
       .width('100%')
       .padding(this.footPadding())

@@ -41,6 +41,7 @@ export class UPGridItemProps {
 export struct UPGridItem {
   @Prop props: UPGridItemProps = new UPGridItemProps();
   @Consume('UPGridLayoutContext') gridContext: UPGridLayoutContext = new UPGridLayoutContext(1, false, 'left', 0);
+  private visualIndex: number = 0;
 
   @Builder
   private emptyContent() {
@@ -49,8 +50,12 @@ export struct UPGridItem {
 
   @BuilderParam contentBuilder: () => void = this.emptyContent;
 
+  aboutToAppear(): void {
+    this.visualIndex = this.gridContext.allocateIndex();
+  }
+
   private itemIndex(): number {
-    return this.gridContext.allocateIndex();
+    return this.visualIndex;
   }
 
   private itemBackground(): string {

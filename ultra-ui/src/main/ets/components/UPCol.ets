@@ -42,7 +42,7 @@ export class UPColProps {
 @Component
 export struct UPCol {
   @Prop props: UPColProps = new UPColProps();
-  @Consume('UPRowLayoutContext') rowContext: UPRowLayoutContext;
+  @Consume('UPRowLayoutContext') rowContext: UPRowLayoutContext = new UPRowLayoutContext(0);
 
   @Builder
   private emptyContent() {

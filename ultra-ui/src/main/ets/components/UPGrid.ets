@@ -81,12 +81,35 @@ export struct UPGrid {
   }
 
   private columnsTemplate(): string {
-    const columns: number = this.gridColumns();
+    const columns: number = this.gridColumns() * 2;
     const cells: Array<string> = [];
     for (let i = 0; i < columns; i++) {
       cells.push('1fr');
     }
     return cells.join(' ');
+  }
+
+  private layoutOptions(): GridLayoutOptions {
+    return {
+      regularSize: [1, 2],
+      irregularIndexes: [],
+      onGetRectByIndex: (index: number): [number, number, number, number] => {
+        const columns: number = this.gridColumns();
+        const count: number = this.gridContext.itemCount();
+        const lastRowStart: number = Math.floor(Math.max(0, count - 1) / columns) * columns;
+        const lastRowCount: number = count - lastRowStart;
+        let leadingTracks: number = 0;
+        if (index >= lastRowStart && lastRowCount > 0 && lastRowCount < columns) {
+          const freeTracks: number = (columns - lastRowCount) * 2;
+          if (this.gridAlign() === 'center') {
+            leadingTracks = Math.floor(freeTracks / 2);
+          } else if (this.gridAlign() === 'right') {
+            leadingTracks = freeTracks;
+          }
+        }
+        return [Math.floor(index / columns), leadingTracks + index % columns * 2, 1, 2];
+      }
+    };
   }
 
   private gridPadding(): Padding {
@@ -121,7 +144,7 @@ export struct UPGrid {
   }
 
   build() {
-    Grid() {
+    Grid(undefined, this.layoutOptions()) {
       this.contentBuilder()
     }
     .columnsTemplate(this.columnsTemplate())

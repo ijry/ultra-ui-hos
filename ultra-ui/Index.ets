@@ -70,3 +70,25 @@ export { UPCollapseItem, UPCollapseItemProps, UPCollapseItemOptions, UPCollapseI
 export { UPCollapseValue } from './src/main/ets/internal/UPInteractionContexts';
 export { UPDropdown, UPDropdownProps, UPDropdownOptions, UPDropdownDirection } from './src/main/ets/components/UPDropdown';
 export { UPDropdownItem, UPDropdownItemProps, UPDropdownItemOptions, UPDropdownOption, UPDropdownItemSelectEvent } from './src/main/ets/components/UPDropdownItem';
+export { UPStatusBar, UPStatusBarProps, UPStatusBarOptions } from './src/main/ets/components/UPStatusBar';
+export { UPSafeBottom, UPSafeBottomProps, UPSafeBottomOptions } from './src/main/ets/components/UPSafeBottom';
+export { UPNavbar, UPNavbarProps, UPNavbarOptions, UPNavigationAdapter } from './src/main/ets/components/UPNavbar';
+export { UPNavbarMini, UPNavbarMiniProps, UPNavbarMiniOptions } from './src/main/ets/components/UPNavbarMini';
+export { UPTabs, UPTabsProps, UPTabsOptions, UPTabsItemData, UPTabsClickEvent } from './src/main/ets/components/UPTabs';
+export { UPTabsItem, UPTabsItemProps, UPTabsItemOptions } from './src/main/ets/components/UPTabsItem';
+export { UPSubsection, UPSubsectionProps, UPSubsectionOptions, UPSubsectionItem } from './src/main/ets/components/UPSubsection';
+export { UPSteps, UPStepsProps, UPStepsOptions } from './src/main/ets/components/UPSteps';
+export { UPStepsItem, UPStepsItemProps, UPStepsItemOptions } from './src/main/ets/components/UPStepsItem';
+export { UPList, UPListProps, UPListOptions, UPListScrollEvent } from './src/main/ets/components/UPList';
+export { UPListItem, UPListItemProps, UPListItemOptions } from './src/main/ets/components/UPListItem';
+export { UPIndexList, UPIndexListProps, UPIndexListOptions, UPIndexListSelectEvent } from './src/main/ets/components/UPIndexList';
+export { UPIndexItem, UPIndexItemProps, UPIndexItemOptions } from './src/main/ets/components/UPIndexItem';
+export { UPIndexAnchor, UPIndexAnchorProps, UPIndexAnchorOptions } from './src/main/ets/components/UPIndexAnchor';
+export {
+  UPScrollList,
+  UPScrollListProps,
+  UPScrollListOptions,
+  UPScrollListEdge,
+  UPScrollListEdgeEvent,
+  UPScrollListScrollEvent
+} from './src/main/ets/components/UPScrollList';

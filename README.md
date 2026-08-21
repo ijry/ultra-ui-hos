@@ -4,7 +4,7 @@ uview-plus 的 HarmonyOS NEXT 原生实现。仓库同时提供一个可复用�
 
 ## 当前交付范围
 
-当前包含阶段 1、阶段 2A、阶段 2B、阶段 2C、阶段 3A、阶段 3B 与阶段 4A，共 54 个已实现组件/控制器（53 个组件 + 1 个控制器），均从 HAR 公共入口导出。
+当前包含阶段 1、阶段 2A、阶段 2B、阶段 2C、阶段 3A、阶段 3B、阶段 4A、阶段 5 与阶段 6，共 69 个已实现组件/控制器（68 个组件 + 1 个控制器），均从 HAR 公共入口导出。
 
 ### 阶段 1：交互与反馈基线
 
@@ -76,6 +76,24 @@ uview-plus 的 HarmonyOS NEXT 原生实现。仓库同时提供一个可复用�
 
 交互组件的页面受控状态、事件顺序、静态动画回退、无网络边界和设备验证限制见 [`docs/compatibility/phase-4a.md`](docs/compatibility/phase-4a.md)。
 
+### 阶段 5：导航核心组件
+
+- `UPStatusBar`、`UPSafeBottom`：顶部/底部系统安全区域和内容 Builder
+- `UPNavbar`、`UPNavbarMini`：标题导航、返回、首页重启和实例级导航适配器
+- `UPTabs`、`UPTabsItem`：受控标签、禁用项、长按、滚动近似和内容 Builder
+- `UPSubsection`：`button`/`subsection` 模式、受控索引和禁用项
+- `UPSteps`、`UPStepsItem`：横向/纵向步骤、点状连接、状态计算和 Builder
+
+导航组件的页面受控状态、事件顺序、安全区回退、固定定位近似、Tabs 滚动近似和 Steps 连接线近似见 [`docs/compatibility/phase-5.md`](docs/compatibility/phase-5.md)。
+
+### 阶段 6：列表与索引组件
+
+- `UPList`、`UPListItem`：原生纵向列表、阈值事件、锚点定位、刷新请求与独立安全回退
+- `UPIndexList`、`UPIndexItem`、`UPIndexAnchor`：受控侧边索引、吸顶分组、显式双 Builder 与默认标题条
+- `UPScrollList`：原生横向滚动、左右边界事件与比例指示器
+
+列表组件的 no-op 字段、原生近似、无网络边界和设备验证状态见 [`docs/compatibility/phase-6.md`](docs/compatibility/phase-6.md)。
+
 未列出的 uview-plus 组件不会伪装成已支持组件；后续组件按兼容性文档分阶段增加。
 
 ## 工程结构
@@ -92,7 +110,7 @@ ultra-ui-hos/
 └── build-profile.json5        # 根 Hvigor 工程配置
 ```
 
-示例应用只从 `@lingyun/ultra-ui-hos` 导入组件，不访问 HAR 内部文件。首页使用 ArkUI 原生 `Navigation`/`NavPathStack`，按 `Components A/B/C/D/E/F/G/H` 分组展示已完成路由，当前包含 52 条组件示例路由。
+示例应用只从 `@lingyun/ultra-ui-hos` 导入组件，不访问 HAR 内部文件。首页使用 ArkUI 原生 `Navigation`/`NavPathStack`，按 `Components A/B/C/D/E/F/G/H/I/J` 分组展示已完成路由，其中 `Components J` 收录阶段 6 列表与索引示例，当前包含 67 条组件示例路由。
 
 ## 基线和要求
 
@@ -216,6 +234,7 @@ python3 scripts/test_arkts_component_contract.py
 python3 scripts/test_phase_3a_content_input_contract.py
 python3 scripts/test_phase_3b_layout_card_contract.py
 python3 scripts/test_phase_4a_native_interaction_contract.py
+python3 scripts/test_phase_5_navigation_contract.py
 python3 scripts/test_documentation_contract.py
 python3 scripts/test_device_script_contract.py
 ./scripts/verify-boundaries.sh
@@ -228,4 +247,4 @@ git diff --check
 ./scripts/capture-screenshots.sh
 ```
 
-更具体的组件范围、兼容回退、no-op 字段、设备验证限制和后续扩展路线见 [`docs/compatibility/phase-1.md`](docs/compatibility/phase-1.md)、[`docs/compatibility/phase-2a.md`](docs/compatibility/phase-2a.md)、[`docs/compatibility/phase-2b.md`](docs/compatibility/phase-2b.md)、[`docs/compatibility/phase-2c.md`](docs/compatibility/phase-2c.md)、[`docs/compatibility/phase-3a.md`](docs/compatibility/phase-3a.md)、[`docs/compatibility/phase-3b.md`](docs/compatibility/phase-3b.md) 和 [`docs/compatibility/phase-4a.md`](docs/compatibility/phase-4a.md)。
+更具体的组件范围、兼容回退、no-op 字段、设备验证限制和后续扩展路线见 [`docs/compatibility/phase-1.md`](docs/compatibility/phase-1.md)、[`docs/compatibility/phase-2a.md`](docs/compatibility/phase-2a.md)、[`docs/compatibility/phase-2b.md`](docs/compatibility/phase-2b.md)、[`docs/compatibility/phase-2c.md`](docs/compatibility/phase-2c.md)、[`docs/compatibility/phase-3a.md`](docs/compatibility/phase-3a.md)、[`docs/compatibility/phase-3b.md`](docs/compatibility/phase-3b.md)、[`docs/compatibility/phase-4a.md`](docs/compatibility/phase-4a.md)、[`docs/compatibility/phase-5.md`](docs/compatibility/phase-5.md) 和 [`docs/compatibility/phase-6.md`](docs/compatibility/phase-6.md)。

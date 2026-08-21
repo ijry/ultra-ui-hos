@@ -196,7 +196,7 @@ def main() -> None:
 
     readme = read(README)
     for phrase in (
-        "阶段 4A", "54 个已实现组件/控制器", "52 条组件示例路由", "phase-4a.md",
+        "阶段 4A", "phase-4a.md",
     ):
         assert phrase in readme, f"README missing {phrase}"
 

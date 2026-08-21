@@ -21,6 +21,8 @@ def main() -> None:
     phase3a_path = ROOT / "docs/compatibility/phase-3a.md"
     phase3b_path = ROOT / "docs/compatibility/phase-3b.md"
     phase4a_path = ROOT / "docs/compatibility/phase-4a.md"
+    phase5_path = ROOT / "docs/compatibility/phase-5.md"
+    phase6_path = ROOT / "docs/compatibility/phase-6.md"
     assert readme_path.is_file(), "README.md is required"
     assert phase1_path.is_file(), "phase-1 compatibility note is required"
     assert phase2a_path.is_file(), "phase-2a compatibility note is required"
@@ -29,6 +31,8 @@ def main() -> None:
     assert phase3a_path.is_file(), "phase-3a compatibility note is required"
     assert phase3b_path.is_file(), "phase-3b compatibility note is required"
     assert phase4a_path.is_file(), "phase-4a compatibility note is required"
+    assert phase5_path.is_file(), "phase-5 compatibility note is required"
+    assert phase6_path.is_file(), "phase-6 compatibility note is required"
 
     readme = readme_path.read_text(encoding="utf-8")
     compatibility = phase1_path.read_text(encoding="utf-8")
@@ -38,6 +42,8 @@ def main() -> None:
     phase3a = phase3a_path.read_text(encoding="utf-8")
     phase3b = phase3b_path.read_text(encoding="utf-8")
     phase4a = phase4a_path.read_text(encoding="utf-8")
+    phase5 = phase5_path.read_text(encoding="utf-8")
+    phase6 = phase6_path.read_text(encoding="utf-8")
     for phrase in (
         "HarmonyOS NEXT",
         "@lingyun/ultra-ui-hos",
@@ -54,8 +60,15 @@ def main() -> None:
         "UPSwitch",
         "UPRate",
         "UPNumberBox",
-        "54 个已实现组件/控制器",
-        "52 条组件示例路由",
+        "69 个已实现组件/控制器",
+        "68 个组件 + 1 个控制器",
+        "67 条组件示例路由",
+        "阶段 6",
+        "UPList",
+        "UPIndexList",
+        "UPScrollList",
+        "Components J",
+        "phase-6.md",
         "阶段 2C",
         "UPForm",
         "UPFormItem",
@@ -179,6 +192,21 @@ def main() -> None:
         "无网络", "no-op", "设备验证", "skipped",
     ):
         assert phrase in phase4a, f"phase-4a note missing {phrase}"
+
+    for phrase in (
+        "阶段 5", "API 24", "5.0.0(12)", "UPStatusBar", "UPSafeBottom",
+        "UPNavbar", "UPNavbarMini", "UPTabs", "UPTabsItem", "UPSubsection",
+        "UPSteps", "UPStepsItem", "页面受控状态", "无网络", "no-op",
+        "设备验证", "skipped",
+    ):
+        assert phrase in phase5, f"phase-5 note missing {phrase}"
+
+    for phrase in (
+        "阶段 6", "API 24", "5.0.0(12)", "UPList", "UPListItem",
+        "UPIndexList", "UPIndexItem", "UPIndexAnchor", "UPScrollList",
+        "无网络", "no-op", "设备验证", "skipped",
+    ):
+        assert phrase in phase6, f"phase-6 note missing {phrase}"
 
     profile = load_json5(ROOT / "build-profile.json5")
     product = profile["app"]["products"][0]

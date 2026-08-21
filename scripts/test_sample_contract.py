@@ -13,7 +13,9 @@ ROUTES = (
     "button", "cell", "icon", "loading-icon", "overlay", "popup",
     "tag", "toast", "modal", "circle-progress", "alert", "notify",
     "notice-bar", "action-sheet", "back-top", "collapse", "collapse-item",
-    "dropdown", "dropdown-item",
+    "dropdown", "dropdown-item", "navbar", "navbar-mini", "status-bar",
+    "safe-bottom", "tabs", "tabs-item", "subsection", "steps", "steps-item",
+    "list", "list-item", "index-list", "index-item", "index-anchor", "scroll-list",
 )
 
 DEMO_FILES = {
@@ -24,6 +26,11 @@ DEMO_FILES = {
     "back-top": "BackTopDemo.ets",
     "collapse-item": "CollapseItemDemo.ets",
     "dropdown-item": "DropdownItemDemo.ets",
+    "navbar-mini": "NavbarMiniDemo.ets",
+    "status-bar": "StatusBarDemo.ets",
+    "safe-bottom": "SafeBottomDemo.ets",
+    "tabs-item": "TabsItemDemo.ets",
+    "steps-item": "StepsItemDemo.ets",
 }
 
 
@@ -70,7 +77,7 @@ def main() -> None:
     page = text(SAMPLE / "pages/SamplePage.ets")
     scaffold = text(SAMPLE / "shared/SampleScaffold.ets")
 
-    for group in ("Components A", "Components B", "Components C", "Components F", "Components G", "Components H"):
+    for group in ("Components A", "Components B", "Components C", "Components F", "Components G", "Components H", "Components I", "Components J"):
         assert group in catalog, f"missing sample group: {group}"
     for route in ROUTES:
         assert re.search(rf"['\"]{re.escape(route)}['\"]", catalog), f"missing route: {route}"

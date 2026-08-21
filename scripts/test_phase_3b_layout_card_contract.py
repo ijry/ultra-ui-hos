@@ -8,6 +8,19 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 INDEX = ROOT / "ultra-ui/Index.ets"
 COMP = ROOT / "ultra-ui/src/main/ets/components"
+DEMO = ROOT / "sample/entry/src/main/ets/demos"
+CATALOG = ROOT / "sample/entry/src/main/ets/catalog/SampleCatalog.ets"
+PAGE = ROOT / "sample/entry/src/main/ets/pages/SamplePage.ets"
+NOTE = ROOT / "docs/compatibility/phase-3b.md"
+README = ROOT / "README.md"
+
+DEMOS = {
+    "row": "RowDemo.ets",
+    "col": "ColDemo.ets",
+    "grid": "GridDemo.ets",
+    "grid-item": "GridItemDemo.ets",
+    "card": "CardDemo.ets",
+}
 
 ROW_COL_FIELDS = {
     "UPRow": ("gutter", "justify", "align", "customStyle", "contentBuilder", "onClick"),
@@ -104,12 +117,19 @@ def main() -> None:
     assert "UPGridItemClickEvent" in index, "UPGridItemClickEvent is not publicly exported"
     assert re.search(r"name\s*:\s*UPRawValue", grid_item), "event name must be UPRawValue"
     assert re.search(r"index\s*:\s*number", grid_item), "event index must be number"
+    assert "aboutToAppear(): void" in grid_item, "UPGridItem must allocate its visual index during composition"
+    assert "this.visualIndex = this.gridContext.allocateIndex()" in grid_item, "UPGridItem must retain its visual index"
+    emit_click = grid_item.split("private emitClick(): void", 1)[1].split("build()", 1)[0]
+    assert "allocateIndex()" not in emit_click, "UPGridItem must not allocate a new index on every click"
 
     grid = read(COMP / "UPGrid.ets")
     assert "Grid(" in grid or "Grid()" in grid, "UPGrid must use native Grid"
     assert "columnsTemplate" in grid, "UPGrid must set columnsTemplate"
     assert "columnsGap" in grid, "UPGrid must set columnsGap"
     assert "rowsGap" in grid, "UPGrid must set rowsGap"
+    assert "GridLayoutOptions" in grid, "UPGrid must use native layout options for last-row alignment"
+    assert "onGetRectByIndex" in grid, "UPGrid must place the last row from its resolved alignment"
+    assert "this.gridContext.itemCount()" in grid, "UPGrid alignment must use the composed item count"
 
     card = read(COMP / "UPCard.ets")
     assert "class UPCardProps" in card, "missing UPCardProps"
@@ -124,11 +144,37 @@ def main() -> None:
     assert re.search(r"area\s*:\s*UPCardArea", card), "event area must be UPCardArea"
     assert re.search(r"index\s*:\s*UPRawValue", card), "event index must be UPRawValue"
     assert "UPImage" in card, "UPCard must render thumb through UPImage"
+    public_card = card.split("export struct UPCard", 1)[1]
+    assert public_card.count("@BuilderParam") == 1, "UPCard must keep one trailing body BuilderParam"
+    assert "contentBuilder: this.props.headBuilder" in card, "UPCard must bridge headBuilder from props"
+    assert "contentBuilder: this.props.footBuilder" in card, "UPCard must bridge footBuilder from props"
     assert "resource://" in card or "file://" in card or "$rawfile:" in card, "UPCard must guard local image sources"
     assert "UPCard" in index and "UPCardProps" in index and "UPCardOptions" in index, "UPCard exports missing"
     assert "UPCardArea" in index and "UPCardClickEvent" in index, "UPCard event exports missing"
     for forbidden in FORBIDDEN:
         assert forbidden not in card, f"UPCard contains forbidden token {forbidden!r}"
+
+    catalog = read(CATALOG)
+    page = read(PAGE)
+    for route, demo_file in DEMOS.items():
+        assert route in catalog, f"missing catalog route: {route}"
+        assert re.search(rf"route === ['\"]{re.escape(route)}['\"]", page), f"missing page route: {route}"
+        demo = read(DEMO / demo_file)
+        assert "@lingyun/ultra-ui-hos" in demo, f"{route} demo must use public HAR entry"
+        assert "ultra-ui/src" not in demo and "../src/main" not in demo, f"{route} demo must not use internal paths"
+        assert "@Component" in demo and "build()" in demo, f"{route} demo must be a component"
+        for forbidden in FORBIDDEN:
+            assert forbidden not in demo, f"forbidden dependency {forbidden!r} in {route} demo"
+
+    note = read(NOTE)
+    for phrase in (
+        "阶段 3B", "API 24", "5.0.0(12)", "UPRow", "UPCol", "UPGrid",
+        "UPGridItem", "UPCard", "本地资源", "无网络", "设备验证", "skipped",
+    ):
+        assert phrase in note, f"phase-3b note missing {phrase}"
+    readme = read(README)
+    for phrase in ("phase-3b.md",):
+        assert phrase in readme, f"README missing {phrase}"
 
     print("phase 3B layout/card contract: PASS")
 

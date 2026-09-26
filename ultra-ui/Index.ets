@@ -55,6 +55,7 @@ export { UPLoadingPage, UPLoadingPageProps, UPLoadingPageOptions } from './src/m
 export { UPSearch, UPSearchProps, UPSearchOptions, UPSearchChangeEvent, UPSearchConfirmEvent } from './src/main/ets/components/UPSearch';
 export { UPCodeInput, UPCodeInputProps, UPCodeInputOptions, UPCodeInputChangeEvent } from './src/main/ets/components/UPCodeInput';
 export { UPRow, UPRowProps, UPRowOptions } from './src/main/ets/components/UPRow';
+export { UPFlex, UPFlexProps, UPFlexOptions, UPFlexGlass } from './src/main/ets/components/UPFlex';
 export { UPCol, UPColProps, UPColOptions } from './src/main/ets/components/UPCol';
 export { UPGrid, UPGridProps, UPGridOptions } from './src/main/ets/components/UPGrid';
 export { UPGridItem, UPGridItemProps, UPGridItemOptions, UPGridItemClickEvent } from './src/main/ets/components/UPGridItem';

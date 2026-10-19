@@ -1,8 +1,9 @@
-import { UPRawValue, UPStyleInput, upBoolean, upNumber, upString } from '../core/UPTypes';
+import { UPBuilder, UPRawValue, UPStyleInput, upBoolean, upNumber, upString } from '../core/UPTypes';
 import { UPColor } from '../core/UPColor';
 import { UPStyle } from '../core/UPStyle';
 import { UPUnit, UPEdgeValues } from '../core/UPUnit';
 import { UP_DEFAULT_THEME } from '../core/UPTheme';
+import { UPSlotRegion } from '../internal/UPSlotRegion';
 
 export type UPAlertType = 'primary' | 'success' | 'warning' | 'error' | 'info';
 export type UPAlertEffect = 'light' | 'dark';
@@ -14,8 +15,10 @@ export interface UPAlertOptions {
   showIcon?: UPRawValue; effect?: UPRawValue; center?: UPRawValue; fontSize?: UPRawValue;
   transitionMode?: UPRawValue; duration?: UPRawValue; icon?: UPRawValue;
   modelValue?: UPRawValue; value?: UPRawValue; customStyle?: UPStyleInput;
-  onVisibleChange?: (visible: boolean) => void; onClick?: (event: UPAlertClickEvent) => void;
+  onVisibleChange?: (visible: boolean) => void;
+  onModelValueChange?: (visible: boolean) => void; onClick?: (event: UPAlertClickEvent) => void;
   onClose?: () => void; onClosed?: () => void;
+  closeBuilder?: UPBuilder;
 }
 
 export class UPAlertProps {
@@ -34,9 +37,11 @@ export class UPAlertProps {
   value: UPRawValue = true;
   customStyle: UPStyleInput = undefined;
   onVisibleChange?: (visible: boolean) => void;
+  onModelValueChange?: (visible: boolean) => void;
   onClick?: (event: UPAlertClickEvent) => void;
   onClose?: () => void;
   onClosed?: () => void;
+  closeBuilder?: UPBuilder;
 
   constructor(options?: UPAlertOptions) {
     if (options === undefined) return;
@@ -47,8 +52,10 @@ export class UPAlertProps {
     this.transitionMode = options.transitionMode ?? this.transitionMode; this.duration = options.duration ?? this.duration;
     this.icon = options.icon ?? this.icon; this.modelValue = options.modelValue ?? this.modelValue;
     this.value = options.value ?? this.value; this.customStyle = options.customStyle;
-    this.onVisibleChange = options.onVisibleChange; this.onClick = options.onClick;
+    this.onVisibleChange = options.onVisibleChange;
+    this.onModelValueChange = options.onModelValueChange; this.onClick = options.onClick;
     this.onClose = options.onClose; this.onClosed = options.onClosed;
+    this.closeBuilder = options.closeBuilder;
   }
 }
 
@@ -76,8 +83,10 @@ export struct UPAlert {
     return value === 'primary' || value === 'success' || value === 'error' || value === 'info' ? value as UPAlertType : 'warning';
   }
   private text(value: UPRawValue): string { return value === null || value === undefined ? '' : String(value); }
+  /** 上游 `update:modelValue` 与 close/closed 一起抛出。/ Upstream emits update:modelValue with close. */
   private close(): void {
-    this.props.onVisibleChange?.(false); this.props.onClose?.(); this.props.onClosed?.();
+    this.props.onVisibleChange?.(false); this.props.onModelValueChange?.(false);
+    this.props.onClose?.(); this.props.onClosed?.();
   }
   private color(): string { return alertColor(this.type()); }
   private alertPadding(): UPEdgeValues {
@@ -97,12 +106,21 @@ export struct UPAlert {
           if (this.text(this.props.title).length > 0) Text(this.text(this.props.title)).fontSize(UPUnit.parse(this.props.fontSize, 375, 14)).fontColor(this.color()).fontWeight(FontWeight.Bold)
           if (this.text(this.props.description).length > 0) Text(this.text(this.props.description)).fontSize(13).fontColor(this.color()).maxLines(3)
         }.layoutWeight(1).alignItems(upBoolean(this.props.center, false) ? HorizontalAlign.Center : HorizontalAlign.Start)
-        if (upBoolean(this.props.closable, false)) Text('×').fontSize(20).fontColor(this.color()).onClick(() => this.close())
+        if (this.props.closeBuilder !== undefined) {
+          this.closeRegion()
+        } else if (upBoolean(this.props.closable, false)) {
+          Text('×').fontSize(20).fontColor(this.color()).onClick(() => this.close())
+        }
       }
       .width('100%').padding(this.alertPadding()).backgroundColor(upString(this.props.effect, 'light') === 'dark' ? this.color() : this.color() + '18')
       .borderRadius(UPStyle.parse(this.props.customStyle).borderRadius ?? 4).opacity(UPStyle.parse(this.props.customStyle).opacity ?? 1)
       .onClick(() => this.props.onClick?.({ type: this.type() }))
     }
+  }
+
+  @Builder
+  private closeRegion() {
+    UPSlotRegion({ contentBuilder: this.props.closeBuilder })
   }
 
   build() {

@@ -1,0 +1,33 @@
+# 阶段 20 兼容说明
+
+阶段 20 增加 `UPCropper`、`UPPoster`、`UPShortVideo` 与 `UPNovelReader`，补齐图片裁剪、海报合成、短视频信息流与小说阅读四类能力，上游 138 个 UI 目录至此全部有对应的公开 ArkUI API。四个组件均面向 HarmonyOS NEXT API 24 使用原生 ArkUI 实现，并从 `@lingyun/ultra-ui-hos` 公共入口导出。
+
+## 范围
+
+- `UPCropper` 复刻上游 `u-cropper`：`internal/UPCropperGeometry.ets` 是裁剪几何的 ArkTS 移植，`upCropperSelection()` 复刻 `loadImage` 的裁剪框居中布局，`upCropperConstraint()` 完整保留 `stretch` 与 `lock` 各六个分支（`x`/`y`/`long`/`short`/`longSel`/`shortSel`），`upCropperPlacement()` 复刻 `drawInit` 的图片适配、居中与 `inner` 模式最小覆盖修正，`upCropperResize()` 复刻四个角控制点拖拽并按屏幕边界与图片边界二次夹取，`upCropperTranslate()` 保留 `inner` 模式的贴边回弹与锁定轴，`upCropperScale()` 保留双指缩放的越界与覆盖校验，`upCropperSaturate()` 逐像素复刻 `colorChange` 的 HSL 饱和度调整（含 `correctRGB`/`createRGB` 两个内联函数）。常量与上游一一对应：操作条高 `UP_CROPPER_TAB_HEIGHT = 50`、可用区留白 `40`/`80`、缩放区间 `0.3`~`4`、控制点命中半径 `20`、绘制边长 `10`、裁剪框最小边 `50`、单帧位移上限 `100`、双指系数 `0.005`、重绘节流 `20ms`、遮罩透明度 `0.4` 与红角长度 `20`。按钮文案沿用上游 i18n 的「重选」「关闭」「旋转」「预览」「确定」，缺少裁剪尺寸时提示「裁剪框的宽或高没有设置」。手势用 `GestureGroup(GestureMode.Parallel, PanGesture, PinchGesture)` 承接上游 `touchstart`/`touchmove`/`touchend` 三个回调。
+- `UPPoster` 复刻上游 `u-poster`：`internal/UPPosterLayout.ets` 承担绘制几何，`upPosterLength()` 复刻 `convertRpxToPx()`，`upPosterRatio()` 复刻 `getRpxRatio()` 的统一比例换算（上游为规避 `upx2px` 特例而用 1000 探测，本端直接按 750 设计稿折算），`upPosterGradient()`/`upPosterGradientColors()`/`upPosterGradientAngle()` 复刻 `drawGradientBackground` 的角度与色标解析并保留 `0`/`90`/`180`/`270` 四个角度分支，`upPosterWrapText()` 连同 `upPosterEstimateWidth()`、`upPosterFitLength()` 复刻 `drawTextWithLineClamp` 的二分折行与末行省略号。组件侧 `view`/`text`/`image`/`qrcode` 四类元素与上游 `switch` 一一对应，圆角走 `quadraticCurveTo` 路径后 `fill` 或 `clip`，默认海报尺寸保持 `750rpx × 1114rpx`，二维码为空时画 `#f5f5f5` 底加居中 `QR` 占位。`UPPosterController` 把上游 `exportImage()` 搬成显式控制器，并提供 `redraw()` 与 `lastImage()`。
+- `UPShortVideo` 复刻上游 `u-short-video`：纵向 `Swiper` 承接上游 `swiper` + `swiper-item`，每页用原生 `Video` 并统一绑定一个 `VideoController`，`onStart`/`onPause`/`onFinish`/`onPrepared`/`onUpdate` 分别对应上游 `play`/`pause`/`ended`/`loadedmetadata`/`timeupdate` 五个事件，`upShortVideoProgress()` 复刻 `onTimeUpdate` 的百分比换算。头部复用 `UPTabs`（`lineColor`/`activeStyle`/`inactiveStyle` 取色沿用上游 `#ddd` 与 `#bbb`），作者区复用 `UPAvatar` 与 `UPButton`，右侧操作栏保留点赞、评论、分享、收藏四项及 `thumb-up-fill`/`bookmark-fill` 选中态图标，底部进度条复用 `UPSlider` 并保留上游三档白色半透明取色，倍速面板复用 `UPActionSheet` 且 `UP_SHORT_VIDEO_SPEEDS` 保持 `0.5`/`0.75`/`1.0`/`1.25`/`1.5`/`2.0`，底部导航复用 `UPTabbar` 并保留「首页/放映厅/直播/我的」四项与 `home`/`photo`/`play-right`/`account` 四个图标。
+- `UPNovelReader` 复刻上游 `u-novel-reader`：`internal/UPNovelLayout.ets` 合并了上游 `content-normalizer.js`、`layout-engine.js`、`measure-adapter.js`、`reader-core.js` 与 `persistence.js` 五个模块。`upNovelNormalizeContent()` 按换行拆段并累计字符偏移，`upNovelTokenize()`/`upNovelWrapText()`/`upNovelPaginate()` 复刻分页引擎（CJK 与空白单独成词、超宽词拆字、按行高与段距填页），`upNovelResolveAnchor()` 复刻字符偏移到页码的定位，`upNovelMergeSettings()` 保留全部钳制区间（字号 `12`~`48`、行高 `1`~`3`、段距 `0`~`80`、正文宽度 `40%`~`100%`、字重按 `600` 二值化），`upNovelMeasureText()` 保留 `measure-adapter` 的字宽系数（全角 `1`、空白 `0.28`、其余 `0.56`），`upNovelNormalizePersisted()` 复刻版本校验与非法数值整体丢弃，`upNovelCreateBookmark()`/`upNovelToggleBookmark()`/`upNovelExcerpt()` 复刻书签模型与摘要窗口（前 `12` 后 `28`）。组件侧滚动与翻页双模式、五套主题（日间/护眼/豆沙/夜间/深色，取色与上游 `THEME_TOKENS` 逐字段一致）、顶部与底部工具条、目录与书签抽屉、阅读设置面板、章节预取（`preloadThreshold`）、自动隐藏工具条（`controlsAutoHide`）与阅读时长统计均已落地，`UPNovelReaderController` 把翻页、跳章、切模式、改设置、开合工具条与重试搬成显式命令。
+
+## 边界
+
+ArkTS 禁止索引签名与 `any`，因此上游直接读写动态键或字符串样式的写法改为具名模型：`UPCropperRect`/`UPCropperPlacement`/`UPCropperConstraint`/`UPCropperTouch`/`UPCropperPreview` 替代上游 `selStyle` 字符串对象与 `touch0`/`touch1`，`UPPosterConfig`/`UPPosterView`/`UPPosterStyle` 替代上游 `json` 与 `css` 任意对象，`UPShortVideoItem`/`UPShortVideoAuthor` 替代 `videoList` 条目并配 `upShortVideoAuthorName()` 等具名读取，`UPNovelChapter`/`UPNovelParagraph`/`UPNovelPage`/`UPNovelSettings`/`UPNovelProgress`/`UPNovelBookmark`/`UPNovelPersistedState` 替代上游同名普通对象，`UPNovelSettingsPatch` 与 `UPNovelProgressPatch` 承载宿主只传部分字段的补丁。
+
+以下上游能力保留为 no-op 兼容位或改由宿主承担，除改名项外都会在传入时通过 `UPCompatibilityDiagnostics.report()` 记录一条诊断：
+
+- `UPCropper` 的图片来源：`uni.chooseImage` 不可用，相册与相机改由宿主注入 `chooseImage()` 回调返回本地路径；`uni.getImageInfo` 同样不可用，原图尺寸改由 `imageWidth`/`imageHeight` 传入，缺省时按画布尺寸兜底并记录诊断；只有本地地址（`resource://`、`file://`、`/`、`$rawfile:`）会进入画布，远端地址跳过绘制并回传 `onFailure`。
+- `UPCropper` 的导出：`toTempFilePath` 不可用，`onConfirm` 回传 base64 data URL 而不是临时文件路径，`quality` 因此只作用于 data URL 编码；上游 H5 分支的 `btop()`（base64 转 Blob URL）与二次绘制不复刻。`showTabBar`/`hideTabBar` 由宿主页面负责，`noTab` 是 no-op；`uni.showLoading`/`uni.showModal`/`uni.showToast` 改为 `onFailure` 与诊断。上游三层 `canvas`（图片层、操作层、预览层）合并为一张画布，图片、遮罩与预览分别重绘；`getImageData`/`putImageData` 的饱和度调整只作用于预览区。
+- `UPPoster` 的导出与二维码：`toTempFilePath` 不可用，`onExport` 回传 base64 data URL；上游用隐藏 `up-qrcode` 组件加临时文件中转生成二维码，本端直接用内置 `UPQrcodeEncoder` 逐格绘制，`qrCodeMap` 缓存因此不再需要。上游 `exportImage` 用 `Promise.race` 配 20 秒超时，ArkUI 绘制是同步的，超时竞速不复刻；H5 专属的 `dataURLToBlob()` 在 HarmonyOS 上不适用。文本宽度用字符估算替代画布量测（上游鸿蒙端同步 `measureText` 恒返回 0，也走估算分支），`fontWeight` 沿用上游只改 `lineWidth` 的行为，不切换真实字重。
+- `UPShortVideo` 的播放：`uni.createVideoContext('video-' + index)` 按索引创建多个上下文，ArkUI 改用单个 `VideoController` 绑定当前页；`enable-progress-gesture`、`show-fullscreen-btn`、`show-play-btn`、`show-center-play-btn` 在 ArkUI `Video` 上没有等价开关，进度调整交给底部滑块；只有本地视频地址会播放，远端地址渲染封面占位。上游 `onUpdate` 只回传当前时间，总时长由 `onPrepared` 提供，因此 `timeUpdate` 的 `duration` 在未准备好时为 `0`；上游模板里注释掉的倍速入口本端用 `showSpeedEntry` 显式开关。
+- `UPNovelReader` 的持久化与量测：`uni.getStorageSync`/`setStorageSync`/`removeStorageSync` 不可用，进度、设置、书签与阅读时长改由宿主注入 `UPNovelStorage` 适配器读写，未注入时持久化整体跳过并记录诊断；`uni.createSelectorQuery` 不可用，视口改用 `onAreaChange` 量测；`uni.onWindowResize`/`offWindowResize` 由宿主页面负责。`autoBack` 不调用任何路由 API，只通过 `onBack` 通知宿主；`mode` 是受控属性，控制器的 `setMode()` 只回传 `onModeChange` 供宿主改 props；`fontFamily` 需要宿主注册字体才生效。滚动模式的章节进度按字符数估算内容高度，与真实排版高度存在差异；翻页分页按字符宽度估算，同样与真实字体度量存在细微差异。
+- `UPNovelReader` 相对上游分页引擎有一处有意修正：上游 `tokenizeText()` 的 `flushToken()` 在 `offset` 越过分隔符之后才读取，使每个词元的 `endOffset` 比真实边界多算一个字符（例如 `'with punctuation'` 的 `with` 被记为 `0..5`）。本端按真实边界记为 `0..4`，因此页面 `endOffset` 与上游相差一个字符；分页结果、页数与页文本本身完全一致，已与上游算法在三组视口配置下逐页比对。
+
+四个组件只使用 ArkUI、本地状态和宿主回调，不使用 WebView、网络请求、运行时 JSON、Vue/NVue 或业务路由。裁剪与海报结果的落盘、相册写入与分享，视频文件的下载与缓存，以及小说章节的拉取与鉴权仍由宿主负责。
+
+## 验证
+
+- 最低兼容 API：24；产品兼容/目标 SDK：`5.0.0(12)`。
+- 阶段 20 静态契约覆盖四个组件与三个内核模块的默认值和常量、核心 Props/事件、裁剪几何与拉伸锁定分支、海报渐变角度与折行、短视频倍速与默认标签、小说五套主题与存储前缀、两个控制器的命令表、公共导出、`Components X` 目录和四条 Demo 路由。
+- 小说分页引擎与上游 `layout-engine.js` 在三组视口配置（300×400/18px、200×160/16px、120×90/22px）上逐页比对：页数、页文本与起始偏移一致，词元 `endOffset` 的一字符差异见上文说明；`upNovelWrapText()` 另在纯中文、纯拉丁、无分隔符、尾随空格与超长单词五组样例上与上游实现完全一致。
+- HAR（`ultra_ui.har`）与示例 HAP（`entry-default-unsigned.hap`）已通过 `./scripts/build.sh` 完成 ArkTS 编译与打包，字体资源契约通过。
+- 未连接 HarmonyOS 模拟器或真机时，设备验证结果记录为 `skipped`；静态契约通过不等于设备验证通过。当前未宣称裁剪手势跟手度与导出画质、海报合成的字体排布、短视频滑动流畅度与播放控制、小说翻页动画与主题观感的设备验证完成；这些表现需在真机复核。

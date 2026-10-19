@@ -5,6 +5,7 @@ import { UPUnit } from '../core/UPUnit';
 import { UP_DEFAULT_THEME } from '../core/UPTheme';
 import { UPLoadingIcon, UPLoadingIconProps } from './UPLoadingIcon';
 import { UPIcon, UPIconProps } from './UPIcon';
+import { UPI18n } from '../core/UPI18n';
 
 export interface UPLoadmoreOptions {
   status?: UPRawValue;
@@ -18,13 +19,14 @@ export interface UPLoadmoreOptions {
   line?: UPRawValue;
   dashed?: UPRawValue;
   customStyle?: UPStyleInput;
+  onLoadmore?: () => void;
 }
 
 export class UPLoadmoreProps {
   status: UPRawValue = 'loadmore';
-  loadingText: UPRawValue = '正在加载...';
-  loadmoreText: UPRawValue = '加载更多';
-  nomoreText: UPRawValue = '没有更多了';
+  loadingText: UPRawValue = UPI18n.t('up.common.loading2') + '...';
+  loadmoreText: UPRawValue = UPI18n.t('up.loadmoe.loadmore');
+  nomoreText: UPRawValue = UPI18n.t('up.loadmoe.nomore');
   icon: UPRawValue = true;
   iconSize: UPRawValue = 17;
   fontSize: UPRawValue = 14;
@@ -32,6 +34,7 @@ export class UPLoadmoreProps {
   line: UPRawValue = false;
   dashed: UPRawValue = false;
   customStyle: UPStyleInput = undefined;
+  onLoadmore?: () => void;
 
   constructor(options?: UPLoadmoreOptions) {
     if (options === undefined) {
@@ -48,6 +51,7 @@ export class UPLoadmoreProps {
     this.line = options.line ?? this.line;
     this.dashed = options.dashed ?? this.dashed;
     this.customStyle = options.customStyle;
+    this.onLoadmore = options.onLoadmore;
   }
 }
 
@@ -72,7 +76,7 @@ export struct UPLoadmore {
 
   private textColor(): string {
     const style = UPStyle.parse(this.props.customStyle);
-    return style.color ?? UPColor.parse(this.props.color, UP_DEFAULT_THEME, UP_DEFAULT_THEME.tips);
+    return style.color ?? UPColor.parse(this.props.color, UP_DEFAULT_THEME, UPColor.neutral('tips', '#909399'));
   }
 
   @Builder
@@ -117,5 +121,13 @@ export struct UPLoadmore {
     }
     .width('100%')
     .alignItems(VerticalAlign.Center)
+    .onClick((): void => this.requestMore())
+  }
+
+  /** 上游 `if (this.status == 'loadmore') this.$emit('loadmore')`。/ Mirrors the upstream guard. */
+  private requestMore(): void {
+    if (this.status() === 'loadmore') {
+      this.props.onLoadmore?.();
+    }
   }
 }

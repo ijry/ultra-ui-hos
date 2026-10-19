@@ -1,7 +1,8 @@
-import { UPRawValue, UPStyleInput, upBoolean, upNumber } from '../core/UPTypes';
+import { UPBuilder, UPRawValue, UPStyleInput, upBoolean, upNumber } from '../core/UPTypes';
 import { UPColor } from '../core/UPColor';
 import { UPStyle } from '../core/UPStyle';
 import { UP_DEFAULT_THEME } from '../core/UPTheme';
+import { UPSlotRegion } from '../internal/UPSlotRegion';
 
 export interface UPOverlayClickEvent {
   source: 'overlay';
@@ -16,6 +17,8 @@ export interface UPOverlayOptions {
   customStyle?: UPStyleInput;
   onShowChange?: (show: boolean) => void;
   onClickOverlay?: (event: UPOverlayClickEvent) => void;
+  onClick?: (event: UPOverlayClickEvent) => void;
+  contentBuilder?: UPBuilder;
 }
 
 /** Controlled full-screen dimming layer. Visibility is owned by the caller. */
@@ -28,6 +31,8 @@ export class UPOverlayProps {
   customStyle: UPStyleInput = undefined;
   onShowChange?: (show: boolean) => void;
   onClickOverlay?: (event: UPOverlayClickEvent) => void;
+  onClick?: (event: UPOverlayClickEvent) => void;
+  contentBuilder?: UPBuilder;
 
   constructor(options?: UPOverlayOptions) {
     if (options === undefined) {
@@ -41,6 +46,8 @@ export class UPOverlayProps {
     this.customStyle = options.customStyle;
     this.onShowChange = options.onShowChange;
     this.onClickOverlay = options.onClickOverlay;
+    this.onClick = options.onClick;
+    this.contentBuilder = options.contentBuilder;
   }
 }
 
@@ -62,8 +69,10 @@ export struct UPOverlay {
     return Math.max(0, upNumber(this.props.zIndex, 1000));
   }
 
+  /** 上游只有一个 `click` 事件；`onClickOverlay` 是本端别名。/ Upstream emits a single click event. */
   private clickOverlay(): void {
     this.props.onClickOverlay?.({ source: 'overlay' });
+    this.props.onClick?.({ source: 'overlay' });
     if (upBoolean(this.props.closeOnClickOverlay, true)) {
       this.props.onShowChange?.(false);
     }
@@ -81,12 +90,18 @@ export struct UPOverlay {
           .backgroundColor(UPColor.parse('#000000', UP_DEFAULT_THEME))
           .opacity(this.overlayOpacity())
           .onClick(() => this.clickOverlay())
+        this.slotRegion()
       }
       .width('100%')
       .height('100%')
       .zIndex(this.overlayZIndex())
     }
   }
+  @Builder
+  private slotRegion() {
+    UPSlotRegion({ contentBuilder: this.props.contentBuilder })
+  }
+
 
   build() {
     this.content()

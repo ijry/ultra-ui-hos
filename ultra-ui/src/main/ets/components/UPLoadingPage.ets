@@ -1,4 +1,4 @@
-import { UPRawValue, UPStyleInput, upBoolean, upString } from '../core/UPTypes';
+import { UPBuilder, UPRawValue, UPStyleInput, upBoolean, upString } from '../core/UPTypes';
 import { UPCompatibilityDiagnostics, UP_SILENT_DIAGNOSTICS } from '../core/UPDiagnostics';
 import { UPColor } from '../core/UPColor';
 import { UPStyle } from '../core/UPStyle';
@@ -6,6 +6,8 @@ import { UPUnit } from '../core/UPUnit';
 import { UP_DEFAULT_THEME } from '../core/UPTheme';
 import { UPIcon, UPIconProps } from './UPIcon';
 import { UPLoadingIcon, UPLoadingIconProps } from './UPLoadingIcon';
+import { UPSlotRegion } from '../internal/UPSlotRegion';
+import { UPI18n } from '../core/UPI18n';
 
 export interface UPLoadingPageOptions {
   loadingText?: UPRawValue;
@@ -20,10 +22,11 @@ export interface UPLoadingPageOptions {
   zIndex?: UPRawValue;
   customStyle?: UPStyleInput;
   diagnostics?: UPCompatibilityDiagnostics;
+  contentBuilder?: UPBuilder;
 }
 
 export class UPLoadingPageProps {
-  loadingText: UPRawValue = '正在加载';
+  loadingText: UPRawValue = UPI18n.t('up.common.loading2');
   image: UPRawValue = '';
   loadingMode: UPRawValue = 'circle';
   loading: UPRawValue = false;
@@ -35,6 +38,7 @@ export class UPLoadingPageProps {
   zIndex: UPRawValue = 10;
   customStyle: UPStyleInput = undefined;
   diagnostics?: UPCompatibilityDiagnostics;
+  contentBuilder?: UPBuilder;
 
   constructor(options?: UPLoadingPageOptions) {
     if (options === undefined) {
@@ -52,6 +56,7 @@ export class UPLoadingPageProps {
     this.zIndex = options.zIndex ?? this.zIndex;
     this.customStyle = options.customStyle;
     this.diagnostics = options.diagnostics;
+    this.contentBuilder = options.contentBuilder;
   }
 }
 
@@ -78,7 +83,7 @@ export struct UPLoadingPage {
 
   private pageBackground(): string {
     const style = UPStyle.parse(this.props.customStyle);
-    return style.backgroundColor ?? style.background ?? UPColor.parse(this.props.bgColor, UP_DEFAULT_THEME, '#ffffff');
+    return style.backgroundColor ?? style.background ?? UPColor.parse(this.props.bgColor, UP_DEFAULT_THEME, UPColor.adaptive('#ffffff', 'card-bg-color'));
   }
 
   @Builder
@@ -98,6 +103,11 @@ export struct UPLoadingPage {
       }) })
     }
   }
+  @Builder
+  private slotRegion() {
+    UPSlotRegion({ contentBuilder: this.props.contentBuilder })
+  }
+
 
   build() {
     if (!upBoolean(this.props.loading, false)) {
@@ -106,10 +116,14 @@ export struct UPLoadingPage {
       Stack({ alignContent: Alignment.Center }) {
         Column({ space: 12 }) {
           this.indicator()
-          Text(textValue(this.props.loadingText))
-            .fontSize(UPUnit.parse(this.props.fontSize, 375, 19))
-            .fontColor(UPColor.parse(this.props.color, UP_DEFAULT_THEME, '#C8C8C8'))
-            .maxLines(2)
+          if (this.props.contentBuilder !== undefined) {
+            this.slotRegion()
+          } else {
+            Text(textValue(this.props.loadingText))
+              .fontSize(UPUnit.parse(this.props.fontSize, 375, 19))
+              .fontColor(UPColor.parse(this.props.color, UP_DEFAULT_THEME, '#C8C8C8'))
+              .maxLines(2)
+          }
         }
         .alignItems(HorizontalAlign.Center)
       }

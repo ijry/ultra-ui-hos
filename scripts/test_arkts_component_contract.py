@@ -21,6 +21,14 @@ FORBIDDEN_HELPER_NAMES = {
     "UPInput": ("background", "borderWidth"),
 }
 
+# The same collision applies to every component struct, so these names are banned
+# repository-wide instead of per component.
+GLOBAL_FORBIDDEN_HELPER_NAMES = (
+    "width", "height", "background", "backgroundColor", "borderWidth", "borderRadius",
+    "borderColor", "padding", "margin", "opacity", "position", "clip", "visibility",
+    "zIndex", "enabled", "align", "direction", "constraintSize", "offset", "overlay",
+)
+
 
 def read(path: Path) -> str:
     assert path.is_file(), f"missing file: {path}"
@@ -74,6 +82,13 @@ def main() -> None:
         assert build_statement is None or not re.match(r"(?:const|let)\b", build_statement), (
             f"{component} build() must start with UI syntax, found {build_statement!r}"
         )
+
+    for path in sorted(COMP.glob("*.ets")):
+        source = read(path)
+        for helper in GLOBAL_FORBIDDEN_HELPER_NAMES:
+            assert not re.search(rf"\bprivate\s+{re.escape(helper)}\s*\(", source), (
+                f"{path.name} must not define helper {helper}(), which collides with CommonAttribute"
+            )
 
     avatar_group = read(COMP / "UPAvatarGroup.ets")
     assert "this.more()" not in avatar_group, (

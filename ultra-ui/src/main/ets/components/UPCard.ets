@@ -47,6 +47,7 @@ export interface UPCardOptions {
   onHeadClick?: (event: UPCardClickEvent) => void;
   onBodyClick?: (event: UPCardClickEvent) => void;
   onFootClick?: (event: UPCardClickEvent) => void;
+  bodyBuilder?: UPBuilder;
 }
 
 /** Card container with optional head/body/foot regions, source-compatible with uview-plus `u-card`. */
@@ -85,6 +86,7 @@ export class UPCardProps {
   onHeadClick?: (event: UPCardClickEvent) => void;
   onBodyClick?: (event: UPCardClickEvent) => void;
   onFootClick?: (event: UPCardClickEvent) => void;
+  bodyBuilder?: UPBuilder;
 
   constructor(options?: UPCardOptions) {
     if (options === undefined) {
@@ -124,6 +126,7 @@ export class UPCardProps {
     this.onHeadClick = options.onHeadClick;
     this.onBodyClick = options.onBodyClick;
     this.onFootClick = options.onFootClick;
+    this.bodyBuilder = options.bodyBuilder;
   }
 }
 
@@ -258,7 +261,7 @@ export struct UPCard {
 
   private titleColorValue(): string {
     const style = UPStyle.parse(this.props.headStyle);
-    return style.color ?? UPColor.parse(this.props.titleColor, UP_DEFAULT_THEME, '#303133');
+    return style.color ?? UPColor.parse(this.props.titleColor, UP_DEFAULT_THEME, UPColor.neutral('main', '#303133'));
   }
 
   private subTitleColorValue(): string {
@@ -387,6 +390,9 @@ export struct UPCard {
   @Builder
   private bodyRegion() {
     Column() {
+      if (this.props.bodyBuilder !== undefined) {
+        UPCardBuilderRegion({ contentBuilder: this.props.bodyBuilder })
+      }
       this.contentBuilder()
     }
     .width('100%')
@@ -435,7 +441,7 @@ export struct UPCard {
     .width('100%')
     .backgroundColor(this.cardBackground())
     .borderWidth(this.cardBorder() ? 0.5 : 0)
-    .borderColor('#ebeef5')
+    .borderColor(UPColor.adaptive('#ebeef5', 'border-color'))
     .borderRadius(this.cardRadius())
     .margin(this.cardMargin())
     .opacity(this.cardOpacity())

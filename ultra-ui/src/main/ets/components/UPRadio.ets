@@ -1,7 +1,8 @@
-import { UPRawValue, UPStyleInput } from '../core/UPTypes';
+import { UPBuilder, UPRawValue, UPStyleInput } from '../core/UPTypes';
 import { UPStyle } from '../core/UPStyle';
 import { UPUnit } from '../core/UPUnit';
 import { upSelectionBoolean, upSelectionColor, upSelectionNumber, upSelectionShape, upSelectionText } from './UPSelectionTypes';
+import { UPSlotRegion } from '../internal/UPSlotRegion';
 
 export interface UPRadioChangeEvent {
   name: UPRawValue;
@@ -24,6 +25,8 @@ export interface UPRadioOptions {
   labelDisabled?: UPRawValue;
   customStyle?: UPStyleInput;
   onChange?: (event: UPRadioChangeEvent) => void;
+  iconBuilder?: UPBuilder;
+  labelBuilder?: UPBuilder;
 }
 
 export class UPRadioProps {
@@ -41,6 +44,8 @@ export class UPRadioProps {
   labelDisabled: UPRawValue = false;
   customStyle: UPStyleInput = undefined;
   onChange?: (event: UPRadioChangeEvent) => void;
+  iconBuilder?: UPBuilder;
+  labelBuilder?: UPBuilder;
 
   constructor(options?: UPRadioOptions) {
     if (options === undefined) return;
@@ -58,6 +63,8 @@ export class UPRadioProps {
     this.labelDisabled = options.labelDisabled ?? this.labelDisabled;
     this.customStyle = options.customStyle;
     this.onChange = options.onChange;
+    this.iconBuilder = options.iconBuilder;
+    this.labelBuilder = options.labelBuilder;
   }
 }
 
@@ -76,10 +83,22 @@ export struct UPRadio {
     this.props.onChange?.({ name: this.props.name, checked: true, value: this.props.name });
   }
 
+  @Builder
+  private iconRegion() {
+    UPSlotRegion({ contentBuilder: this.props.iconBuilder })
+  }
+
+  @Builder
+  private labelRegion() {
+    UPSlotRegion({ contentBuilder: this.props.labelBuilder })
+  }
+
   build() {
     Row({ space: 8 }) {
       Stack() {
-        if (this.selected) {
+        if (this.props.iconBuilder !== undefined) {
+          this.iconRegion()
+        } else if (this.selected) {
           Column().width(this.sizeValue() * 0.5).height(this.sizeValue() * 0.5)
             .backgroundColor(upSelectionColor(this.props.activeColor, '#2979ff'))
             .borderRadius(this.sizeValue() / 2)
@@ -91,7 +110,9 @@ export struct UPRadio {
       .borderColor(this.selected ? upSelectionColor(this.props.activeColor, '#2979ff') : upSelectionColor(this.props.inactiveColor, '#c8c9cc'))
       .borderRadius(this.sizeValue() / 2)
       .onClick((): void => this.toggle())
-      if (upSelectionText(this.props.label).length > 0) {
+      if (this.props.labelBuilder !== undefined) {
+        this.labelRegion()
+      } else if (upSelectionText(this.props.label).length > 0) {
         Text(upSelectionText(this.props.label))
           .fontSize(UPUnit.parse(this.props.labelSize, 375, 14))
           .fontColor(upSelectionColor(this.props.labelColor, '#606266'))

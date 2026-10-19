@@ -1,7 +1,9 @@
-import { UPRawValue, UPStyleInput, upBoolean, upString, upValueKey } from '../core/UPTypes';
+import { UPBuilder, UPRawValue, UPStyleInput, upBoolean, upString, upValueKey } from '../core/UPTypes';
 import { UPStyle } from '../core/UPStyle';
 import { UPUnit } from '../core/UPUnit';
 import { UPDropdownContext } from '../internal/UPInteractionContexts';
+import { UPSlotRegion } from '../internal/UPSlotRegion';
+import { UPColor } from '../core/UPColor';
 
 export interface UPDropdownOption { label: UPRawValue; value: UPRawValue; disabled?: UPRawValue; }
 export interface UPDropdownItemSelectEvent { index: number; option: UPDropdownOption; value: UPRawValue | Array<UPRawValue>; }
@@ -12,6 +14,7 @@ export interface UPDropdownItemOptions {
   onValueChange?: (value: UPRawValue | Array<UPRawValue>) => void;
   onChange?: (value: UPRawValue | Array<UPRawValue>) => void;
   onSelect?: (event: UPDropdownItemSelectEvent) => void;
+  contentBuilder?: UPBuilder;
 }
 export class UPDropdownItemProps {
   modelValue: UPRawValue | Array<UPRawValue> = undefined; value: UPRawValue | Array<UPRawValue> = '';
@@ -19,12 +22,14 @@ export class UPDropdownItemProps {
   height: UPRawValue = 44; closeOnClickOverlay: UPRawValue = true; customStyle: UPStyleInput = undefined;
   multiple: UPRawValue = false; onValueChange?: (value: UPRawValue | Array<UPRawValue>) => void;
   onChange?: (value: UPRawValue | Array<UPRawValue>) => void; onSelect?: (event: UPDropdownItemSelectEvent) => void;
+  contentBuilder?: UPBuilder;
   constructor(options?: UPDropdownItemOptions) {
     if (options === undefined) return;
     this.modelValue = options.modelValue ?? this.modelValue; this.value = options.value ?? this.value; this.title = options.title ?? this.title;
     this.options = options.options ?? this.options; this.disabled = options.disabled ?? this.disabled; this.height = options.height ?? this.height;
     this.closeOnClickOverlay = options.closeOnClickOverlay ?? this.closeOnClickOverlay; this.customStyle = options.customStyle;
     this.multiple = options.multiple ?? this.multiple; this.onValueChange = options.onValueChange; this.onChange = options.onChange; this.onSelect = options.onSelect;
+    this.contentBuilder = options.contentBuilder;
   }
 }
 
@@ -69,16 +74,25 @@ export struct UPDropdownItem {
   }
   @Builder private content() {
     if (this.dropdownContext.isOpen(this.itemIndex)) {
-      Column() { ForEach(this.props.options, (option: UPDropdownOption, index: number) => { this.optionView(index); }, (option: UPDropdownOption): string => upValueKey(option.value)) }
-        .width('100%').backgroundColor('#ffffff')
+      if (this.props.contentBuilder !== undefined) {
+        this.slotRegion()
+      } else {
+        Column() { ForEach(this.props.options, (option: UPDropdownOption, index: number) => { this.optionView(index); }, (option: UPDropdownOption): string => upValueKey(option.value)) }
+          .width('100%').backgroundColor(UPColor.adaptive('#ffffff', 'card-bg-color'))
+      }
     }
   }
+  @Builder
+  private slotRegion() {
+    UPSlotRegion({ contentBuilder: this.props.contentBuilder })
+  }
+
   build() {
     Column() {
       Row() {
         Text(this.text(this.props.title).length > 0 ? this.text(this.props.title) : this.selectedLabel()).fontSize(14)
           .fontColor(this.dropdownContext.isOpen(this.itemIndex) ? '#2979ff' : '#606266').layoutWeight(1)
-        Text(this.dropdownContext.isOpen(this.itemIndex) ? '⌃' : '⌄').fontSize(16).fontColor('#909399')
+        Text(this.dropdownContext.isOpen(this.itemIndex) ? '⌃' : '⌄').fontSize(16).fontColor(UPColor.adaptive('#909399', 'tips-color'))
       }.width('100%').height(UPUnit.parse(this.props.height, 375, 44)).padding({ left: 12, right: 12 })
         .border({ width: { bottom: 1 }, color: '#ebeef5' }).opacity(upBoolean(this.props.disabled, false) ? 0.5 : 1)
         .onClick(() => { if (!upBoolean(this.props.disabled, false)) this.dropdownContext.requestOpen(this.itemIndex); })

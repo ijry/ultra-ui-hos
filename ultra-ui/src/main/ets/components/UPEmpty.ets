@@ -1,9 +1,10 @@
-import { UPRawValue, UPStyleInput, upBoolean, upString } from '../core/UPTypes';
+import { UPBuilder, UPRawValue, UPStyleInput, upBoolean, upString } from '../core/UPTypes';
 import { UPStyle } from '../core/UPStyle';
 import { UPColor } from '../core/UPColor';
 import { UPUnit } from '../core/UPUnit';
 import { UP_DEFAULT_THEME } from '../core/UPTheme';
 import { UPIcon, UPIconProps } from './UPIcon';
+import { UPSlotRegion } from '../internal/UPSlotRegion';
 
 export interface UPEmptyOptions {
   icon?: UPRawValue;
@@ -18,6 +19,7 @@ export interface UPEmptyOptions {
   show?: UPRawValue;
   marginTop?: UPRawValue;
   customStyle?: UPStyleInput;
+  contentBuilder?: UPBuilder;
 }
 
 export class UPEmptyProps {
@@ -33,6 +35,7 @@ export class UPEmptyProps {
   show: UPRawValue = true;
   marginTop: UPRawValue = 0;
   customStyle: UPStyleInput = undefined;
+  contentBuilder?: UPBuilder;
 
   constructor(options?: UPEmptyOptions) {
     if (options === undefined) {
@@ -50,6 +53,7 @@ export class UPEmptyProps {
     this.show = options.show ?? this.show;
     this.marginTop = options.marginTop ?? this.marginTop;
     this.customStyle = options.customStyle;
+    this.contentBuilder = options.contentBuilder;
   }
 }
 
@@ -93,6 +97,11 @@ export struct UPEmpty {
     const style = UPStyle.parse(this.props.customStyle);
     return style.height ?? UPUnit.parse(this.props.height, 375, 160);
   }
+  @Builder
+  private slotRegion() {
+    UPSlotRegion({ contentBuilder: this.props.contentBuilder })
+  }
+
 
   build() {
     if (!upBoolean(this.props.show, true)) {
@@ -102,15 +111,16 @@ export struct UPEmpty {
         UPIcon({ props: new UPIconProps({
           name: this.iconName(),
           size: UPUnit.parse(this.props.iconSize, 375, 90),
-          color: UPColor.parse(this.props.iconColor, UP_DEFAULT_THEME, '#c0c4cc')
+          color: UPColor.parse(this.props.iconColor, UP_DEFAULT_THEME, UPColor.neutral('light', '#c0c4cc'))
         }) })
         if (textValue(this.props.text).length > 0) {
           Text(textValue(this.props.text))
             .fontSize(UPUnit.parse(this.props.textSize, 375, 14))
-            .fontColor(UPColor.parse(this.props.textColor, UP_DEFAULT_THEME, '#c0c4cc'))
+            .fontColor(UPColor.parse(this.props.textColor, UP_DEFAULT_THEME, UPColor.neutral('light', '#c0c4cc')))
             .textAlign(TextAlign.Center)
             .maxLines(2)
         }
+        this.slotRegion()
       }
       .width(this.emptyWidth())
       .height(this.emptyHeight())

@@ -7,6 +7,7 @@ export interface UPCollapseOptions {
   value?: UPCollapseValue; modelValue?: UPCollapseValue; accordion?: UPRawValue; border?: UPRawValue;
   arrow?: UPRawValue; disabled?: UPRawValue; clickable?: UPRawValue; customStyle?: UPStyleInput;
   onChange?: (event: UPCollapseChangeEvent) => void; onValueChange?: (value: UPCollapseValue) => void;
+  onOpen?: (name: UPRawValue) => void; onClose?: (name: UPRawValue) => void;
   contentBuilder?: UPBuilder;
 }
 export class UPCollapseProps {
@@ -14,6 +15,7 @@ export class UPCollapseProps {
   border: UPRawValue = true; arrow: UPRawValue = true; disabled: UPRawValue = false;
   clickable: UPRawValue = true; customStyle: UPStyleInput = undefined;
   onChange?: (event: UPCollapseChangeEvent) => void; onValueChange?: (value: UPCollapseValue) => void;
+  onOpen?: (name: UPRawValue) => void; onClose?: (name: UPRawValue) => void;
   contentBuilder?: UPBuilder;
   constructor(options?: UPCollapseOptions) {
     if (options === undefined) return;
@@ -21,7 +23,8 @@ export class UPCollapseProps {
     this.accordion = options.accordion ?? this.accordion; this.border = options.border ?? this.border;
     this.arrow = options.arrow ?? this.arrow; this.disabled = options.disabled ?? this.disabled;
     this.clickable = options.clickable ?? this.clickable; this.customStyle = options.customStyle;
-    this.onChange = options.onChange; this.onValueChange = options.onValueChange; this.contentBuilder = options.contentBuilder;
+    this.onChange = options.onChange; this.onValueChange = options.onValueChange;
+    this.onOpen = options.onOpen; this.onClose = options.onClose; this.contentBuilder = options.contentBuilder;
   }
 }
 @Component
@@ -34,10 +37,20 @@ export struct UPCollapse {
   private controlledValue(): UPCollapseValue {
     return this.props.modelValue !== null && this.props.modelValue !== undefined ? this.props.modelValue : this.props.value;
   }
+  /** 上游 `this.$emit(target.expanded ? 'open' : 'close', target.name)`。/ Mirrors the upstream open/close split. */
+  private dispatchChange(event: UPCollapseChangeEvent): void {
+    this.props.onChange?.(event);
+    if (event.open) {
+      this.props.onOpen?.(event.name);
+      return;
+    }
+    this.props.onClose?.(event.name);
+  }
   refreshContext(): void {
     this.collapseContext = new UPCollapseContext();
     this.collapseContext.beginComposition(this.controlledValue(), upBoolean(this.props.accordion, false),
-      upBoolean(this.props.disabled, false), upBoolean(this.props.clickable, true), this.props.onValueChange, this.props.onChange);
+      upBoolean(this.props.disabled, false), upBoolean(this.props.clickable, true), this.props.onValueChange,
+      (event: UPCollapseChangeEvent): void => this.dispatchChange(event));
   }
   build() {
     Column() { this.contentBuilder() }.width(UPStyle.parse(this.props.customStyle).width ?? '100%')

@@ -1,9 +1,10 @@
-import { UPRawValue, UPStyleInput, upBoolean, upString } from '../core/UPTypes';
+import { UPBuilder, UPRawValue, UPStyleInput, upBoolean, upString } from '../core/UPTypes';
 import { UPColor } from '../core/UPColor';
 import { UPStyle } from '../core/UPStyle';
 import { UP_DEFAULT_THEME } from '../core/UPTheme';
 import { UPUnit } from '../core/UPUnit';
 import { UPIcon, UPIconProps } from './UPIcon';
+import { UPSlotRegion } from '../internal/UPSlotRegion';
 
 export interface UPInputChangeEvent {
   value: string;
@@ -12,6 +13,12 @@ export interface UPInputChangeEvent {
 export interface UPInputConfirmEvent {
   value: string;
   key: string;
+}
+
+/** 上游 keyboardheightchange 事件。/ Upstream keyboardheightchange payload. */
+export interface UPInputKeyboardEvent {
+  height: number;
+  duration: number;
 }
 
 export interface UPInputOptions {
@@ -61,6 +68,10 @@ export interface UPInputOptions {
   onFocus?: () => void;
   onBlur?: (event: UPInputChangeEvent) => void;
   onClear?: () => void;
+  onKeyboardHeightChange?: (event: UPInputKeyboardEvent) => void;
+  onNicknameReview?: (event: UPInputChangeEvent) => void;
+  prefixBuilder?: UPBuilder;
+  suffixBuilder?: UPBuilder;
 }
 
 export class UPInputProps {
@@ -110,6 +121,10 @@ export class UPInputProps {
   onFocus?: () => void;
   onBlur?: (event: UPInputChangeEvent) => void;
   onClear?: () => void;
+  onKeyboardHeightChange?: (event: UPInputKeyboardEvent) => void;
+  onNicknameReview?: (event: UPInputChangeEvent) => void;
+  prefixBuilder?: UPBuilder;
+  suffixBuilder?: UPBuilder;
 
   constructor(options?: UPInputOptions) {
     if (options === undefined) {
@@ -161,6 +176,10 @@ export class UPInputProps {
     this.onFocus = options.onFocus;
     this.onBlur = options.onBlur;
     this.onClear = options.onClear;
+    this.onKeyboardHeightChange = options.onKeyboardHeightChange;
+    this.onNicknameReview = options.onNicknameReview;
+    this.prefixBuilder = options.prefixBuilder;
+    this.suffixBuilder = options.suffixBuilder;
   }
 }
 
@@ -272,14 +291,16 @@ export struct UPInput {
   private content() {
     Column({ space: 4 }) {
       Row({ space: 8 }) {
-        if (rawText(this.props.prefixIcon).length > 0) {
+        if (this.props.prefixBuilder !== undefined) {
+          this.prefixRegion()
+        } else if (rawText(this.props.prefixIcon).length > 0) {
           UPIcon({ props: new UPIconProps({ name: rawText(this.props.prefixIcon), size: 18, color: '#909399', customStyle: this.props.prefixIconStyle }) })
         }
         TextInput({ text: this.innerValue, placeholder: rawText(this.props.placeholder) })
           .type(inputTypeOf(rawText(this.props.type), upBoolean(this.props.password, false)))
           .enabled(!upBoolean(this.props.disabled, false))
           .fontSize(UPStyle.parse(this.props.customStyle).fontSize ?? UPUnit.parse(this.props.fontSize, 375, 15))
-          .fontColor(UPStyle.parse(this.props.customStyle).color ?? UPColor.parse(this.props.color, UP_DEFAULT_THEME, '#303133'))
+          .fontColor(UPStyle.parse(this.props.customStyle).color ?? UPColor.parse(this.props.color, UP_DEFAULT_THEME, UPColor.neutral('main', '#303133')))
           .placeholderColor('#c0c4cc')
           .caretColor(UPColor.parse(this.props.cursorColor, UP_DEFAULT_THEME, '#2979ff'))
           .maxLength(this.maxLength())
@@ -298,10 +319,20 @@ export struct UPInput {
           .onChange((value: string): void => {
             if (!upBoolean(this.props.readonly, false)) {
               this.setValue(value);
+              /** 上游 nicknamereview 仅在 `type: 'nickname'` 时由平台回调。/ Upstream nickname review. */
+              if (rawText(this.props.type) === 'nickname') {
+                this.props.onNicknameReview?.({ value: this.innerValue });
+              }
             }
           })
           .onSubmit((enterKey: EnterKeyType): void => {
             this.props.onConfirm?.({ value: this.innerValue, key: String(enterKey) });
+          })
+          /** 上游 keyboardheightchange 由 uni 输入框上报；ArkUI 走 TextInput 的同名回调。/ Upstream keyboard height. */
+          .onEditChange((isEditing: boolean): void => {
+            if (!isEditing) {
+              this.props.onKeyboardHeightChange?.({ height: 0, duration: 0 });
+            }
           })
         if (this.showClear()) {
           Text('×')
@@ -316,7 +347,9 @@ export struct UPInput {
               this.clear();
             })
         }
-        if (rawText(this.props.suffixIcon).length > 0) {
+        if (this.props.suffixBuilder !== undefined) {
+          this.suffixRegion()
+        } else if (rawText(this.props.suffixIcon).length > 0) {
           UPIcon({ props: new UPIconProps({ name: rawText(this.props.suffixIcon), size: 18, color: '#909399', customStyle: this.props.suffixIconStyle }) })
         }
       }
@@ -330,12 +363,22 @@ export struct UPInput {
       if (upBoolean(this.props.showWordLimit, false)) {
         Text(String(this.innerValue.length) + '/' + String(this.maxLength()))
           .fontSize(11)
-          .fontColor('#909399')
+          .fontColor(UPColor.adaptive('#909399', 'tips-color'))
           .width('100%')
           .textAlign(TextAlign.End)
       }
     }
     .width(UPStyle.parse(this.props.customStyle).width ?? '100%')
+  }
+
+  @Builder
+  private prefixRegion() {
+    UPSlotRegion({ contentBuilder: this.props.prefixBuilder })
+  }
+
+  @Builder
+  private suffixRegion() {
+    UPSlotRegion({ contentBuilder: this.props.suffixBuilder })
   }
 
   build() {

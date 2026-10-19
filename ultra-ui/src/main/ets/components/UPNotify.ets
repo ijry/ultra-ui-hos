@@ -1,19 +1,22 @@
-import { UPRawValue, UPStyleInput, upBoolean, upNumber, upString } from '../core/UPTypes';
+import { UPBuilder, UPRawValue, UPStyleInput, upBoolean, upNumber, upString } from '../core/UPTypes';
 import { UPColor } from '../core/UPColor';
 import { UPStyle } from '../core/UPStyle';
 import { UPUnit } from '../core/UPUnit';
 import { UP_DEFAULT_THEME } from '../core/UPTheme';
+import { UPSlotRegion } from '../internal/UPSlotRegion';
 
 export interface UPNotifyOptions {
   show?: UPRawValue; top?: UPRawValue; message?: UPRawValue; type?: UPRawValue; color?: UPRawValue;
   bgColor?: UPRawValue; duration?: UPRawValue; fontSize?: UPRawValue; safeAreaInsetTop?: UPRawValue;
   onShowChange?: (show: boolean) => void; onClick?: () => void; onClose?: () => void; customStyle?: UPStyleInput;
+  iconBuilder?: UPBuilder;
 }
 export class UPNotifyProps {
   show: UPRawValue = false; top: UPRawValue = 0; message: UPRawValue = ''; type: UPRawValue = 'primary';
   color: UPRawValue = ''; bgColor: UPRawValue = ''; duration: UPRawValue = 3000; fontSize: UPRawValue = 14;
   safeAreaInsetTop: UPRawValue = false; onShowChange?: (show: boolean) => void; onClick?: () => void;
   onClose?: () => void; customStyle: UPStyleInput = undefined;
+  iconBuilder?: UPBuilder;
   constructor(options?: UPNotifyOptions) {
     if (options === undefined) return;
     this.show = options.show ?? this.show; this.top = options.top ?? this.top; this.message = options.message ?? this.message;
@@ -21,6 +24,7 @@ export class UPNotifyProps {
     this.duration = options.duration ?? this.duration; this.fontSize = options.fontSize ?? this.fontSize;
     this.safeAreaInsetTop = options.safeAreaInsetTop ?? this.safeAreaInsetTop; this.onShowChange = options.onShowChange;
     this.onClick = options.onClick; this.onClose = options.onClose; this.customStyle = options.customStyle;
+    this.iconBuilder = options.iconBuilder;
   }
 }
 function notifyColor(value: UPRawValue): string {
@@ -43,6 +47,7 @@ export struct UPNotify {
       Row().width(0).height(0)
     } else {
       Row() {
+        this.iconRegion()
         Text(this.message()).fontSize(UPUnit.parse(this.props.fontSize, 375, 14)).fontColor(this.color()).maxLines(2).layoutWeight(1)
         Text('×').fontSize(18).fontColor(this.color()).onClick(() => this.close())
       }
@@ -50,6 +55,11 @@ export struct UPNotify {
       .backgroundColor(UPColor.parse(this.props.bgColor, UP_DEFAULT_THEME, this.color() + '18')).borderRadius(UPStyle.parse(this.props.customStyle).borderRadius ?? 4).opacity(UPStyle.parse(this.props.customStyle).opacity ?? 1)
       .onClick(() => this.props.onClick?.())
     }
+  }
+
+  @Builder
+  private iconRegion() {
+    UPSlotRegion({ contentBuilder: this.props.iconBuilder })
   }
 
   build() {

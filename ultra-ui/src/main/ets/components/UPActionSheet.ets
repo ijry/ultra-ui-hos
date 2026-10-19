@@ -1,8 +1,10 @@
-import { UPRawValue, UPStyleInput, upBoolean, upNumber, upString } from '../core/UPTypes';
+import { UPBuilder, UPRawValue, UPStyleInput, upBoolean, upNumber, upString } from '../core/UPTypes';
 import { UPColor } from '../core/UPColor';
 import { UPStyle } from '../core/UPStyle';
 import { UPUnit } from '../core/UPUnit';
 import { UP_DEFAULT_THEME } from '../core/UPTheme';
+import { UPSlotRegion } from '../internal/UPSlotRegion';
+import { UPI18n } from '../core/UPI18n';
 
 export interface UPActionSheetAction {
   name: UPRawValue;
@@ -23,16 +25,18 @@ export interface UPActionSheetOptions {
   wrapMaxHeight?: UPRawValue; index?: UPRawValue; customStyle?: UPStyleInput;
   onShowChange?: (show: boolean) => void; onSelect?: (event: UPActionSheetSelectEvent) => void;
   onCancel?: () => void; onClose?: (reason: UPActionSheetCloseReason) => void; onClickOverlay?: () => void;
+  contentBuilder?: UPBuilder;
 }
 
 export class UPActionSheetProps {
   show: UPRawValue = false; title: UPRawValue = ''; description: UPRawValue = '';
   actions: Array<UPActionSheetAction> = []; nameKey: UPRawValue = 'name'; subnameKey: UPRawValue = 'subname';
-  cancelText: UPRawValue = '取消'; closeOnClickAction: UPRawValue = true; safeAreaInsetBottom: UPRawValue = true;
+  cancelText: UPRawValue = UPI18n.t('up.common.cancel'); closeOnClickAction: UPRawValue = true; safeAreaInsetBottom: UPRawValue = true;
   openType: UPRawValue = ''; closeOnClickOverlay: UPRawValue = true; round: UPRawValue = 0;
   wrapMaxHeight: UPRawValue = 360; index: UPRawValue = ''; customStyle: UPStyleInput = undefined;
   onShowChange?: (show: boolean) => void; onSelect?: (event: UPActionSheetSelectEvent) => void;
   onCancel?: () => void; onClose?: (reason: UPActionSheetCloseReason) => void; onClickOverlay?: () => void;
+  contentBuilder?: UPBuilder;
 
   constructor(options?: UPActionSheetOptions) {
     if (options === undefined) return;
@@ -45,6 +49,7 @@ export class UPActionSheetProps {
     this.wrapMaxHeight = options.wrapMaxHeight ?? this.wrapMaxHeight; this.index = options.index ?? this.index;
     this.customStyle = options.customStyle; this.onShowChange = options.onShowChange; this.onSelect = options.onSelect;
     this.onCancel = options.onCancel; this.onClose = options.onClose; this.onClickOverlay = options.onClickOverlay;
+    this.contentBuilder = options.contentBuilder;
   }
 }
 
@@ -75,9 +80,9 @@ export struct UPActionSheet {
       Column({ space: 3 }) {
         Text(upBoolean(this.props.actions[index].loading, false) ? '处理中…' : this.text(this.props.actions[index].name))
           .fontSize(UPUnit.parse(this.props.actions[index].fontSize, 375, 16))
-          .fontColor(UPColor.parse(this.props.actions[index].color, UP_DEFAULT_THEME, '#303133'))
+          .fontColor(UPColor.parse(this.props.actions[index].color, UP_DEFAULT_THEME, UPColor.neutral('main', '#303133')))
         if (this.text(this.props.actions[index].subname).length > 0) {
-          Text(this.text(this.props.actions[index].subname)).fontSize(12).fontColor('#909399')
+          Text(this.text(this.props.actions[index].subname)).fontSize(12).fontColor(UPColor.adaptive('#909399', 'tips-color'))
         }
       }.alignItems(HorizontalAlign.Center)
     }
@@ -90,13 +95,17 @@ export struct UPActionSheet {
   @Builder
   private panel() {
     Column() {
-      if (this.text(this.props.title).length > 0) Text(this.text(this.props.title)).fontSize(17).fontWeight(FontWeight.Bold).fontColor('#303133').padding({ top: 16, bottom: 6 })
-      if (this.text(this.props.description).length > 0) Text(this.text(this.props.description)).fontSize(13).fontColor('#909399').padding({ left: 16, right: 16, bottom: 10 })
-      Scroll() {
-        Column() { ForEach(this.actionIndexes(), (index: number) => { this.actionRow(index) }, (index: number): string => String(index)) }.width('100%')
-      }.constraintSize({ maxHeight: Math.max(80, UPUnit.parse(this.props.wrapMaxHeight, 375, 360)) })
+      if (this.text(this.props.title).length > 0) Text(this.text(this.props.title)).fontSize(17).fontWeight(FontWeight.Bold).fontColor(UPColor.adaptive('#303133', 'main-color')).padding({ top: 16, bottom: 6 })
+      if (this.text(this.props.description).length > 0) Text(this.text(this.props.description)).fontSize(13).fontColor(UPColor.adaptive('#909399', 'tips-color')).padding({ left: 16, right: 16, bottom: 10 })
+      if (this.props.contentBuilder !== undefined) {
+        this.slotRegion()
+      } else {
+        Scroll() {
+          Column() { ForEach(this.actionIndexes(), (index: number) => { this.actionRow(index) }, (index: number): string => String(index)) }.width('100%')
+        }.constraintSize({ maxHeight: Math.max(80, UPUnit.parse(this.props.wrapMaxHeight, 375, 360)) })
+      }
       if (this.text(this.props.cancelText).length > 0) {
-        Text(this.text(this.props.cancelText)).fontSize(16).fontColor('#303133').textAlign(TextAlign.Center).width('100%').height(54).padding({ top: 16 }).border({ width: { top: 8 }, color: '#f7f8fa' }).onClick(() => this.cancel())
+        Text(this.text(this.props.cancelText)).fontSize(16).fontColor(UPColor.adaptive('#303133', 'main-color')).textAlign(TextAlign.Center).width('100%').height(54).padding({ top: 16 }).border({ width: { top: 8 }, color: '#f7f8fa' }).onClick(() => this.cancel())
       }
     }
     .width('100%').backgroundColor(UPStyle.parse(this.props.customStyle).backgroundColor ?? '#ffffff')
@@ -114,5 +123,10 @@ export struct UPActionSheet {
       }.width('100%').height('100%').zIndex(1002)
     }
   }
+  @Builder
+  private slotRegion() {
+    UPSlotRegion({ contentBuilder: this.props.contentBuilder })
+  }
+
   build() { this.content() }
 }

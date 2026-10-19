@@ -16,9 +16,28 @@ ROUTES = (
     "dropdown", "dropdown-item", "navbar", "navbar-mini", "status-bar",
     "safe-bottom", "tabs", "tabs-item", "subsection", "steps", "steps-item",
     "list", "list-item", "index-list", "index-item", "index-anchor", "scroll-list",
+    "slider", "picker", "picker-cascade", "select", "popover", "tooltip",
+    "sticky", "swipe-action", "swipe-action-item", "read-more", "pagination",
+    "count-down", "count-to", "timeline", "calendar", "keyboard", "floating-bubble",
 )
 
+EXTRA_ROUTES = ("utils", "i18n", "theme")
+
+# 业务模板场景页（复刻上游 pages/template/*），route -> demo 文件
+TEMPLATE_ROUTES = {
+    "tpl-login": "TemplateLoginDemo.ets",
+    "tpl-pay": "TemplatePayDemo.ets",
+    "tpl-submit-bar": "TemplateSubmitBarDemo.ets",
+    "tpl-comment": "TemplateCommentDemo.ets",
+    "tpl-order": "TemplateOrderDemo.ets",
+    "tpl-coupon": "TemplateCouponDemo.ets",
+    "tpl-mine": "TemplateMineDemo.ets",
+    "tpl-mall": "TemplateMallDemo.ets",
+    "tpl-address": "TemplateAddressDemo.ets",
+}
+
 DEMO_FILES = {
+    "i18n": "I18nDemo.ets",
     "loading-icon": "LoadingIconDemo.ets",
     "circle-progress": "CircleProgressDemo.ets",
     "notice-bar": "NoticeBarDemo.ets",
@@ -31,6 +50,12 @@ DEMO_FILES = {
     "safe-bottom": "SafeBottomDemo.ets",
     "tabs-item": "TabsItemDemo.ets",
     "steps-item": "StepsItemDemo.ets",
+    "count-down": "CountDownDemo.ets",
+    "count-to": "CountToDemo.ets",
+    "timeline": "TimelineDemo.ets",
+    "calendar": "CalendarDemo.ets",
+    "keyboard": "KeyboardDemo.ets",
+    "floating-bubble": "FloatingBubbleDemo.ets",
 }
 
 
@@ -77,13 +102,26 @@ def main() -> None:
     page = text(SAMPLE / "pages/SamplePage.ets")
     scaffold = text(SAMPLE / "shared/SampleScaffold.ets")
 
-    for group in ("Components A", "Components B", "Components C", "Components F", "Components G", "Components H", "Components I", "Components J"):
+    for group in ("Components A", "Components B", "Components C", "Components F", "Components G",
+                  "Components H", "Components I", "Components J", "Components K", "Components L",
+                  "Components M", "Components N", "Components Y"):
         assert group in catalog, f"missing sample group: {group}"
-    for route in ROUTES:
+    for route in ROUTES + EXTRA_ROUTES:
         assert re.search(rf"['\"]{re.escape(route)}['\"]", catalog), f"missing route: {route}"
         demo = text(DEMO / DEMO_FILES.get(route, route.title().replace("-", "") + "Demo.ets"))
         assert "@lingyun/ultra-ui-hos" in demo, f"demo does not use public HAR entry: {route}"
         assert "../src/main" not in demo and "ultra-ui/src" not in demo
+
+    # 模板场景页：路由在目录/分发页登记，Demo 只用公共入口且无业务路由/网络
+    assert "Templates" in catalog, "sample catalog must open the Templates group"
+    for route, filename in TEMPLATE_ROUTES.items():
+        assert re.search(rf"['\"]{re.escape(route)}['\"]", catalog), f"missing template route: {route}"
+        assert route in page, f"SamplePage does not dispatch template route: {route}"
+        demo = text(DEMO / filename)
+        assert "@lingyun/ultra-ui-hos" in demo, f"template demo does not use public HAR entry: {filename}"
+        assert not re.search(r"=>\s*this\.", demo), f"{filename} must use explicit void block bodies"
+        for forbidden in ("fetch(", "http://", "https://", "navigateTo"):
+            assert forbidden not in demo, f"{filename} must not use {forbidden}"
 
     for symbol in ("Navigation", "NavPathStack", "SampleCatalog", "UPToastHost"):
         assert symbol in index, f"missing {symbol} in index"

@@ -1,10 +1,11 @@
-import { UPRawValue, UPStyleInput, upBoolean } from '../core/UPTypes';
+import { UPBuilder, UPRawValue, UPStyleInput, upBoolean } from '../core/UPTypes';
 import { UPColor } from '../core/UPColor';
 import { UPStyle } from '../core/UPStyle';
 import { UPUnit } from '../core/UPUnit';
 import { UP_DEFAULT_THEME } from '../core/UPTheme';
 import { UPCompatibilityDiagnostics } from '../core/UPDiagnostics';
 import { UPIndexListContext, UPIndexListSelectEvent } from '../internal/UPListContexts';
+import { UPSlotRegion } from '../internal/UPSlotRegion';
 
 export { UPIndexListSelectEvent } from '../internal/UPListContexts';
 
@@ -24,6 +25,8 @@ export interface UPIndexListOptions {
   onChange?: (event: UPIndexListSelectEvent) => void;
   onCurrentChange?: (value: UPRawValue) => void;
   contentBuilder?: () => void;
+  headerBuilder?: UPBuilder;
+  footerBuilder?: UPBuilder;
 }
 
 export class UPIndexListProps {
@@ -42,6 +45,8 @@ export class UPIndexListProps {
   onChange?: (event: UPIndexListSelectEvent) => void;
   onCurrentChange?: (value: UPRawValue) => void;
   contentBuilder?: () => void;
+  headerBuilder?: UPBuilder;
+  footerBuilder?: UPBuilder;
 
   constructor(options?: UPIndexListOptions) {
     if (options === undefined) return;
@@ -60,6 +65,8 @@ export class UPIndexListProps {
     this.onChange = options.onChange;
     this.onCurrentChange = options.onCurrentChange;
     this.contentBuilder = options.contentBuilder;
+    this.headerBuilder = options.headerBuilder;
+    this.footerBuilder = options.footerBuilder;
   }
 }
 
@@ -84,10 +91,30 @@ export struct UPIndexList {
     return upBoolean(this.props.safeBottomFix, false) ? 16 : 0;
   }
 
+  @Builder
+  private headerRegion() {
+    UPSlotRegion({ contentBuilder: this.props.headerBuilder })
+  }
+
+  @Builder
+  private footerRegion() {
+    UPSlotRegion({ contentBuilder: this.props.footerBuilder })
+  }
+
   build() {
     Stack({ alignContent: Alignment.End }) {
       List({ scroller: this.scroller }) {
+        if (this.props.headerBuilder !== undefined) {
+          ListItem() {
+            this.headerRegion()
+          }
+        }
         this.contentBuilder()
+        if (this.props.footerBuilder !== undefined) {
+          ListItem() {
+            this.footerRegion()
+          }
+        }
       }
       .width('100%')
       .height('100%')

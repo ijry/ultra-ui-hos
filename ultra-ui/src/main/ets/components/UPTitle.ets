@@ -1,8 +1,9 @@
-import { UPRawValue, UPStyleInput, upBoolean, upString } from '../core/UPTypes';
+import { UPBuilder, UPRawValue, UPStyleInput, upBoolean, upString } from '../core/UPTypes';
 import { UPColor } from '../core/UPColor';
 import { UPStyle } from '../core/UPStyle';
 import { UPUnit } from '../core/UPUnit';
 import { UP_DEFAULT_THEME } from '../core/UPTheme';
+import { UPSlotRegion } from '../internal/UPSlotRegion';
 
 export interface UPTitleOptions {
   title?: UPRawValue;
@@ -17,6 +18,8 @@ export interface UPTitleOptions {
   prefixWidth?: UPRawValue;
   prefixHeight?: UPRawValue;
   customStyle?: UPStyleInput;
+  contentBuilder?: UPBuilder;
+  prefixBuilder?: UPBuilder;
 }
 
 export class UPTitleProps {
@@ -32,6 +35,8 @@ export class UPTitleProps {
   prefixWidth: UPRawValue = 4;
   prefixHeight: UPRawValue = 18;
   customStyle: UPStyleInput = undefined;
+  contentBuilder?: UPBuilder;
+  prefixBuilder?: UPBuilder;
 
   constructor(options?: UPTitleOptions) {
     if (options === undefined) {
@@ -49,6 +54,8 @@ export class UPTitleProps {
     this.prefixWidth = options.prefixWidth ?? this.prefixWidth;
     this.prefixHeight = options.prefixHeight ?? this.prefixHeight;
     this.customStyle = options.customStyle;
+    this.contentBuilder = options.contentBuilder;
+    this.prefixBuilder = options.prefixBuilder;
   }
 }
 
@@ -76,7 +83,7 @@ export struct UPTitle {
 
   private textColor(): string {
     const style = UPStyle.parse(this.props.customStyle);
-    return style.color ?? UPColor.parse(this.props.color, UP_DEFAULT_THEME, UP_DEFAULT_THEME.main);
+    return style.color ?? UPColor.parse(this.props.color, UP_DEFAULT_THEME, UPColor.neutral('main', '#303133'));
   }
 
   private prefixFill(): string {
@@ -95,9 +102,21 @@ export struct UPTitle {
     return HorizontalAlign.Start;
   }
 
+  @Builder
+  private slotRegion() {
+    UPSlotRegion({ contentBuilder: this.props.contentBuilder })
+  }
+
+  @Builder
+  private prefixRegion() {
+    UPSlotRegion({ contentBuilder: this.props.prefixBuilder })
+  }
+
   build() {
     Row({ space: 10 }) {
-      if (upBoolean(this.props.prefix, true)) {
+      if (this.props.prefixBuilder !== undefined) {
+        this.prefixRegion()
+      } else if (upBoolean(this.props.prefix, true)) {
         Column()
           .width(UPUnit.parse(this.props.prefixWidth, 375, 4))
           .height(UPUnit.parse(this.props.prefixHeight, 375, 18))
@@ -114,8 +133,9 @@ export struct UPTitle {
         if (this.subText().length > 0) {
           Text(this.subText())
             .fontSize(13)
-            .fontColor(UP_DEFAULT_THEME.tips)
+            .fontColor(UPColor.neutral('tips', '#909399'))
         }
+        this.slotRegion()
       }
       .layoutWeight(1)
       .alignItems(this.titleAlign())

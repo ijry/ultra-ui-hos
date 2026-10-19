@@ -1,14 +1,34 @@
-import { UPRawValue, UPStyleInput, upBoolean, upString } from '../core/UPTypes';
+import { UPBuilder, UPRawValue, UPStyleInput, upBoolean, upString } from '../core/UPTypes';
 import { UPCompatibilityDiagnostics, UP_SILENT_DIAGNOSTICS } from '../core/UPDiagnostics';
 import { UPColor } from '../core/UPColor';
 import { UPStyle } from '../core/UPStyle';
 import { UPUnit } from '../core/UPUnit';
 import { UP_DEFAULT_THEME } from '../core/UPTheme';
 import { UPIcon, UPIconProps } from './UPIcon';
+import { UPSlotRegion } from '../internal/UPSlotRegion';
 
 export interface UPImageClickEvent {
   src: string;
   mode: string;
+}
+
+/** ArkUI onComplete 的回调载荷子集。/ Subset of the ArkUI onComplete payload. */
+interface UPImageCompleteInfo {
+  width: number;
+  height: number;
+}
+
+/** 上游 load 事件：ArkUI 只给出图源尺寸。/ Upstream load payload from the ArkUI image source. */
+export interface UPImageLoadEvent {
+  src: string;
+  width: number;
+  height: number;
+}
+
+/** 上游 error 事件。/ Upstream error payload. */
+export interface UPImageErrorEvent {
+  src: string;
+  message: string;
 }
 
 export interface UPImageOptions {
@@ -31,6 +51,10 @@ export interface UPImageOptions {
   customStyle?: UPStyleInput;
   diagnostics?: UPCompatibilityDiagnostics;
   onClick?: (event: UPImageClickEvent) => void;
+  onLoad?: (event: UPImageLoadEvent) => void;
+  onError?: (event: UPImageErrorEvent) => void;
+  loadingBuilder?: UPBuilder;
+  errorBuilder?: UPBuilder;
 }
 
 export class UPImageProps {
@@ -53,6 +77,10 @@ export class UPImageProps {
   customStyle: UPStyleInput = undefined;
   diagnostics?: UPCompatibilityDiagnostics;
   onClick?: (event: UPImageClickEvent) => void;
+  onLoad?: (event: UPImageLoadEvent) => void;
+  onError?: (event: UPImageErrorEvent) => void;
+  loadingBuilder?: UPBuilder;
+  errorBuilder?: UPBuilder;
 
   constructor(options?: UPImageOptions) {
     if (options === undefined) {
@@ -77,6 +105,10 @@ export class UPImageProps {
     this.customStyle = options.customStyle;
     this.diagnostics = options.diagnostics;
     this.onClick = options.onClick;
+    this.onLoad = options.onLoad;
+    this.onError = options.onError;
+    this.loadingBuilder = options.loadingBuilder;
+    this.errorBuilder = options.errorBuilder;
   }
 }
 
@@ -127,7 +159,8 @@ export struct UPImage {
 
   private imageBackground(): string {
     const style = UPStyle.parse(this.props.customStyle);
-    return style.backgroundColor ?? style.background ?? UPColor.parse(this.props.bgColor, UP_DEFAULT_THEME, '#f3f4f6');
+    return style.backgroundColor ?? style.background
+      ?? UPColor.parse(this.props.bgColor, UP_DEFAULT_THEME, UPColor.adaptive('#f3f4f6', 'bg-color'));
   }
 
   private radius(): number {
@@ -176,6 +209,20 @@ export struct UPImage {
           .height(this.imageHeight())
           .objectFit(imageFit(textValue(this.props.mode)))
           .backgroundColor(this.imageBackground())
+          .onComplete((event?: UPImageCompleteInfo): void => {
+            this.props.onLoad?.({
+              src: this.source(),
+              width: event === undefined ? 0 : event.width,
+              height: event === undefined ? 0 : event.height
+            });
+          })
+          .onError((): void => {
+            this.props.onError?.({ src: this.source(), message: '图片解码失败' });
+          })
+      } else if (this.props.errorBuilder !== undefined) {
+        this.errorRegion()
+      } else if (this.props.loadingBuilder !== undefined) {
+        this.loadingRegion()
       } else {
         this.fallback()
       }
@@ -193,6 +240,7 @@ export struct UPImage {
   aboutToAppear(): void {
     if (this.source().length > 0 && !isLocalImageSource(this.source())) {
       this.diagnostics().report('UPImage', 'src', this.props.src, 'remote image loading is disabled; render deterministic local placeholder');
+      this.props.onError?.({ src: this.source(), message: 'remote image loading is disabled' });
     }
     if (upBoolean(this.props.webp, false)) {
       this.diagnostics().report('UPImage', 'webp', this.props.webp, 'webp compatibility is delegated to local resource decoding');
@@ -200,6 +248,16 @@ export struct UPImage {
     if (upBoolean(this.props.showMenuByLongpress, false)) {
       this.diagnostics().report('UPImage', 'showMenuByLongpress', this.props.showMenuByLongpress, 'long-press image menu is not exposed by this native wrapper');
     }
+  }
+
+  @Builder
+  private loadingRegion() {
+    UPSlotRegion({ contentBuilder: this.props.loadingBuilder })
+  }
+
+  @Builder
+  private errorRegion() {
+    UPSlotRegion({ contentBuilder: this.props.errorBuilder })
   }
 
   build() {

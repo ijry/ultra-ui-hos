@@ -15,6 +15,7 @@ export interface UPGridItemOptions {
   customStyle?: UPStyleInput;
   contentBuilder?: UPBuilder;
   onClick?: (event: UPGridItemClickEvent) => void;
+  onGridItemBroadcast?: (index: number) => void;
 }
 
 /** Evenly divided grid cell that can also render safely outside a UPGrid. */
@@ -24,6 +25,7 @@ export class UPGridItemProps {
   customStyle: UPStyleInput = undefined;
   contentBuilder?: UPBuilder;
   onClick?: (event: UPGridItemClickEvent) => void;
+  onGridItemBroadcast?: (index: number) => void;
 
   constructor(options?: UPGridItemOptions) {
     if (options === undefined) {
@@ -34,6 +36,7 @@ export class UPGridItemProps {
     this.customStyle = options.customStyle;
     this.contentBuilder = options.contentBuilder;
     this.onClick = options.onClick;
+    this.onGridItemBroadcast = options.onGridItemBroadcast;
   }
 }
 
@@ -105,12 +108,18 @@ export struct UPGridItem {
   }
 
   private emitClick(): void {
-    if (this.props.onClick === undefined) {
-      return;
-    }
     const index: number = this.itemIndex();
     const name: UPRawValue = this.props.name === null || this.props.name === undefined ? index : this.props.name;
-    this.props.onClick({ name: name, index: index });
+    /** 上游先由 grid-item 抛出，再冒泡到 grid 的 `click`。/ Item click bubbles up to the grid. */
+    this.gridContext.onItemClick?.(name, index);
+    /**
+     * 上游用 `uni.$emit('$uGridItem')` 全局广播来清理兄弟项的按下态；
+     * 这里改为把广播交给宿主，组件不引入全局事件总线。
+     * Upstream broadcasts through the global uni event bus; here the notification
+     * is handed to the host instead of introducing a global bus.
+     */
+    this.props.onGridItemBroadcast?.(index);
+    this.props.onClick?.({ name: name, index: index });
   }
 
   build() {
@@ -127,7 +136,7 @@ export struct UPGridItem {
     .height('100%')
     .backgroundColor(this.itemBackground())
     .borderWidth(this.itemBorder() ? 0.5 : 0)
-    .borderColor('#dcdfe6')
+    .borderColor(UPColor.adaptive('#dcdfe6', 'border-color'))
     .padding(this.itemPadding())
     .margin(this.itemMargin())
     .opacity(this.itemOpacity())

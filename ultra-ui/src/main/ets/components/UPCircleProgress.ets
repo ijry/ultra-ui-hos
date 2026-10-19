@@ -43,7 +43,7 @@ export struct UPCircleProgress {
   private defaultContent() {
     Text(String(Math.round(this.percent())) + '%')
       .fontSize(16)
-      .fontColor('#303133')
+      .fontColor(UPColor.adaptive('#303133', 'main-color'))
   }
 
   @BuilderParam contentBuilder: () => void = this.defaultContent;

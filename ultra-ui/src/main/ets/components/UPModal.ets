@@ -3,6 +3,8 @@ import { UPColor } from '../core/UPColor';
 import { UPStyle } from '../core/UPStyle';
 import { UPUnit, UPEdgeValues } from '../core/UPUnit';
 import { UP_DEFAULT_THEME } from '../core/UPTheme';
+import { UPSlotRegion } from '../internal/UPSlotRegion';
+import { UPI18n } from '../core/UPI18n';
 
 export type UPModalActionType = 'confirm' | 'cancel' | 'overlay' | 'close';
 export type UPModalCloseReason = UPModalActionType;
@@ -43,8 +45,13 @@ export interface UPModalOptions {
   onShowChange?: (show: boolean) => void;
   onClickOverlay?: () => void;
   onAction?: (event: UPModalAction) => void;
+  onConfirm?: (event: UPModalAction) => void;
+  onCancel?: (event: UPModalAction) => void;
+  onCancelOnAsync?: () => void;
   onClose?: (event: UPModalCloseEvent) => void;
   contentBuilder?: UPBuilder;
+  confirmButtonBuilder?: UPBuilder;
+  popupBottomBuilder?: UPBuilder;
 }
 
 /** Controlled confirmation dialog with explicit, one-shot async completion. */
@@ -52,8 +59,8 @@ export class UPModalProps {
   show: UPRawValue = false;
   title: UPRawValue = '';
   content: UPRawValue = '';
-  confirmText: UPRawValue = '确认';
-  cancelText: UPRawValue = '取消';
+  confirmText: UPRawValue = UPI18n.t('up.common.confirm');
+  cancelText: UPRawValue = UPI18n.t('up.common.cancel');
   showConfirmButton: UPRawValue = true;
   showCancelButton: UPRawValue = true;
   confirmColor: UPRawValue = 'primary';
@@ -68,14 +75,19 @@ export class UPModalProps {
   duration: UPRawValue = 300;
   contentTextAlign: UPRawValue = 'center';
   contentStyle: UPStyleInput = undefined;
-  asyncCloseTip: UPRawValue = '正在处理';
+  asyncCloseTip: UPRawValue = UPI18n.t('up.common.inOperation') + '...';
   asyncCancelClose: UPRawValue = false;
   customStyle: UPStyleInput = undefined;
   onShowChange?: (show: boolean) => void;
   onClickOverlay?: () => void;
   onAction?: (event: UPModalAction) => void;
+  onConfirm?: (event: UPModalAction) => void;
+  onCancel?: (event: UPModalAction) => void;
+  onCancelOnAsync?: () => void;
   onClose?: (event: UPModalCloseEvent) => void;
   contentBuilder?: UPBuilder;
+  confirmButtonBuilder?: UPBuilder;
+  popupBottomBuilder?: UPBuilder;
 
   constructor(options?: UPModalOptions) {
     if (options === undefined) {
@@ -106,8 +118,13 @@ export class UPModalProps {
     this.onShowChange = options.onShowChange;
     this.onClickOverlay = options.onClickOverlay;
     this.onAction = options.onAction;
+    this.onConfirm = options.onConfirm;
+    this.onCancel = options.onCancel;
+    this.onCancelOnAsync = options.onCancelOnAsync;
     this.onClose = options.onClose;
     this.contentBuilder = options.contentBuilder;
+    this.confirmButtonBuilder = options.confirmButtonBuilder;
+    this.popupBottomBuilder = options.popupBottomBuilder;
   }
 }
 
@@ -183,7 +200,7 @@ export struct UPModal {
 
   private contentColor(): string {
     const style = UPStyle.parse(this.props.contentStyle);
-    return style.color ?? UP_DEFAULT_THEME.content;
+    return style.color ?? UPColor.neutral('content', '#606266');
   }
 
   private contentFontSize(): number {
@@ -236,8 +253,21 @@ export struct UPModal {
 
     const asynchronous: boolean = this.actionIsAsync(action);
     this.pendingAction = asynchronous ? action : '';
-    this.props.onAction?.({ action, done });
-    if (!asynchronous || this.props.onAction === undefined) {
+    const request: UPModalAction = { action, done };
+    this.props.onAction?.(request);
+    /** 上游按动作分派 confirm / cancel / cancelOnAsync。/ Upstream dispatches per action. */
+    if (action === 'confirm') {
+      this.props.onConfirm?.(request);
+    } else if (action === 'cancel') {
+      if (asynchronous) {
+        this.props.onCancelOnAsync?.();
+      }
+      this.props.onCancel?.(request);
+    }
+    const handled: boolean = this.props.onAction !== undefined
+      || (action === 'confirm' && this.props.onConfirm !== undefined)
+      || (action === 'cancel' && this.props.onCancel !== undefined);
+    if (!asynchronous || !handled) {
       done();
     }
   }
@@ -268,7 +298,7 @@ export struct UPModal {
         Button({ type: ButtonType.Normal, stateEffect: true }) {
           Text(this.cancelLabel())
         }
-        .fontColor(modalColor(this.props.cancelColor, UP_DEFAULT_THEME.content))
+        .fontColor(modalColor(this.props.cancelColor, UPColor.neutral('content', '#606266')))
         .backgroundColor('#f5f6f8')
         .borderRadius(UPUnit.parse(this.props.confirmButtonShape, 375, 4))
         .onClick(() => this.dispatchAction('cancel'))
@@ -295,7 +325,7 @@ export struct UPModal {
         Button({ type: ButtonType.Normal, stateEffect: true }) {
           Text(this.cancelLabel())
         }
-        .fontColor(modalColor(this.props.cancelColor, UP_DEFAULT_THEME.content))
+        .fontColor(modalColor(this.props.cancelColor, UPColor.neutral('content', '#606266')))
         .backgroundColor('#f5f6f8')
         .borderRadius(4)
         .onClick(() => this.dispatchAction('cancel'))
@@ -314,7 +344,7 @@ export struct UPModal {
           .width('100%')
           .fontSize(18)
           .fontWeight(FontWeight.Bold)
-          .fontColor(UP_DEFAULT_THEME.main)
+          .fontColor(UPColor.neutral('main', '#303133'))
           .textAlign(TextAlign.Center)
       }
       if (this.bodyText().length > 0) {
@@ -331,13 +361,17 @@ export struct UPModal {
           .width('100%')
           .margin({ top: 10 })
           .fontSize(13)
-          .fontColor(UP_DEFAULT_THEME.tips)
+          .fontColor(UPColor.neutral('tips', '#909399'))
           .textAlign(TextAlign.Center)
       }
       Divider()
         .margin({ top: 12 })
         .color('#eeeeee')
-      this.actionButtons()
+      if (this.props.confirmButtonBuilder !== undefined) {
+        this.confirmButtonRegion()
+      } else {
+        this.actionButtons()
+      }
     }
     .width(this.modalWidth())
     .padding(this.panelPadding())
@@ -360,6 +394,7 @@ export struct UPModal {
           .onClick(() => this.clickOverlay())
         Column() {
           this.modalPanel()
+          this.popupBottomRegion()
         }
         .width('100%')
         .height('100%')
@@ -370,6 +405,16 @@ export struct UPModal {
       .height('100%')
       .zIndex(1002)
     }
+  }
+
+  @Builder
+  private confirmButtonRegion() {
+    UPSlotRegion({ contentBuilder: this.props.confirmButtonBuilder })
+  }
+
+  @Builder
+  private popupBottomRegion() {
+    UPSlotRegion({ contentBuilder: this.props.popupBottomBuilder })
   }
 
   build() {

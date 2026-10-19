@@ -1,8 +1,9 @@
-import { UPRawValue, UPStyleInput, upBoolean, upNumber, upString } from '../core/UPTypes';
+import { UPBuilder, UPRawValue, UPStyleInput, upBoolean, upNumber, upString } from '../core/UPTypes';
 import { UPColor } from '../core/UPColor';
 import { UPStyle } from '../core/UPStyle';
 import { UPUnit } from '../core/UPUnit';
 import { UP_DEFAULT_THEME } from '../core/UPTheme';
+import { UPSlotRegion } from '../internal/UPSlotRegion';
 
 export interface UPSkeletonOptions {
   loading?: UPRawValue;
@@ -17,6 +18,7 @@ export interface UPSkeletonOptions {
   animate?: UPRawValue;
   bgColor?: UPRawValue;
   customStyle?: UPStyleInput;
+  contentBuilder?: UPBuilder;
 }
 
 export class UPSkeletonProps {
@@ -32,6 +34,7 @@ export class UPSkeletonProps {
   animate: UPRawValue = true;
   bgColor: UPRawValue = '#f2f3f5';
   customStyle: UPStyleInput = undefined;
+  contentBuilder?: UPBuilder;
 
   constructor(options?: UPSkeletonOptions) {
     if (options === undefined) {
@@ -49,6 +52,7 @@ export class UPSkeletonProps {
     this.animate = options.animate ?? this.animate;
     this.bgColor = options.bgColor ?? this.bgColor;
     this.customStyle = options.customStyle;
+    this.contentBuilder = options.contentBuilder;
   }
 }
 
@@ -67,7 +71,8 @@ export struct UPSkeleton {
 
   private fill(): string {
     const style = UPStyle.parse(this.props.customStyle);
-    return style.backgroundColor ?? style.background ?? UPColor.parse(this.props.bgColor, UP_DEFAULT_THEME, '#f2f3f5');
+    return style.backgroundColor ?? style.background
+      ?? UPColor.parse(this.props.bgColor, UP_DEFAULT_THEME, UPColor.adaptive('#f2f3f5', 'skeleton-bg-color'));
   }
 
   private widthValue(value: UPRawValue, fallback: number | string): number | string {
@@ -119,10 +124,15 @@ export struct UPSkeleton {
     }
     .width('100%')
   }
+  @Builder
+  private slotRegion() {
+    UPSlotRegion({ contentBuilder: this.props.contentBuilder })
+  }
+
 
   build() {
     if (!upBoolean(this.props.loading, true)) {
-      Row().width(0).height(0)
+      this.slotRegion()
     } else {
       this.skeletonContent()
     }

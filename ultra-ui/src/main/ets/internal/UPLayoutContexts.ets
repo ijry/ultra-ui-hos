@@ -58,6 +58,8 @@ export class UPGridLayoutContext {
   border: boolean;
   align: string;
   gap: number;
+  /** 上游 u-grid 的 `click` 事件，由子项冒泡上来。/ Upstream grid-level click bubbled from items. */
+  onItemClick?: (name: UPRawValue, index: number) => void;
   private nextIndex: number;
 
   constructor(columns: number, border: boolean, align: string, gap: number) {
@@ -69,8 +71,9 @@ export class UPGridLayoutContext {
   }
 
   /** Reset the render-local item counter at the start of each Grid build pass. */
-  beginComposition(): void {
+  beginComposition(onItemClick?: (name: UPRawValue, index: number) => void): void {
     this.nextIndex = 0;
+    this.onItemClick = onItemClick;
   }
 
   /** Allocate the next visual index for a nested item; never persisted globally. */

@@ -115,7 +115,7 @@ export struct UPSwitch {
       Column()
         .width(this.trackWidth())
         .height(this.sizeValue())
-        .backgroundColor(this.checked() ? UPColor.parse(this.props.activeColor, UP_DEFAULT_THEME, '#2979ff') : UPColor.parse(this.props.inactiveColor, UP_DEFAULT_THEME, '#ffffff'))
+        .backgroundColor(this.checked() ? UPColor.parse(this.props.activeColor, UP_DEFAULT_THEME, '#2979ff') : UPColor.parse(this.props.inactiveColor, UP_DEFAULT_THEME, UPColor.adaptive('#ffffff', 'card-bg-color')))
         .borderRadius(this.sizeValue() / 2)
         .borderWidth(1)
         .borderColor(this.checked() ? UPColor.parse(this.props.activeColor, UP_DEFAULT_THEME, '#2979ff') : '#dadbde')
@@ -125,7 +125,7 @@ export struct UPSwitch {
         Column()
           .width(this.knobSize())
           .height(this.knobSize())
-          .backgroundColor(this.checked() ? UPColor.parse(this.props.dotActiveColor, UP_DEFAULT_THEME, '#ffffff') : UPColor.parse(this.props.dotInactiveColor, UP_DEFAULT_THEME, '#ffffff'))
+          .backgroundColor(this.checked() ? UPColor.parse(this.props.dotActiveColor, UP_DEFAULT_THEME, UPColor.adaptive('#ffffff', 'card-bg-color')) : UPColor.parse(this.props.dotInactiveColor, UP_DEFAULT_THEME, UPColor.adaptive('#ffffff', 'card-bg-color')))
           .borderRadius(this.knobSize() / 2)
           .margin({ left: 2, right: 2 })
       }

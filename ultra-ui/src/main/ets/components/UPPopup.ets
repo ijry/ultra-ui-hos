@@ -3,6 +3,7 @@ import { UPColor } from '../core/UPColor';
 import { UPStyle } from '../core/UPStyle';
 import { UPUnit, UPEdgeValues } from '../core/UPUnit';
 import { UP_DEFAULT_THEME } from '../core/UPTheme';
+import { UPSlotRegion } from '../internal/UPSlotRegion';
 
 export type UPPopupMode = 'top' | 'bottom' | 'left' | 'right' | 'center';
 export type UPPopupCloseReason = 'overlay' | 'close' | 'programmatic';
@@ -33,8 +34,12 @@ export interface UPPopupOptions {
   onShowChange?: (show: boolean) => void;
   onClose?: (event: UPPopupCloseEvent) => void;
   onOpen?: () => void;
+  onClosed?: (event: UPPopupCloseEvent) => void;
+  onClick?: () => void;
   onClickOverlay?: () => void;
   contentBuilder?: UPBuilder;
+  triggerBuilder?: UPBuilder;
+  bottomBuilder?: UPBuilder;
 }
 
 /** Controlled panel that keeps placement and close reasons source-compatible with uview-plus. */
@@ -60,8 +65,12 @@ export class UPPopupProps {
   onShowChange?: (show: boolean) => void;
   onClose?: (event: UPPopupCloseEvent) => void;
   onOpen?: () => void;
+  onClosed?: (event: UPPopupCloseEvent) => void;
+  onClick?: () => void;
   onClickOverlay?: () => void;
   contentBuilder?: UPBuilder;
+  triggerBuilder?: UPBuilder;
+  bottomBuilder?: UPBuilder;
 
   constructor(options?: UPPopupOptions) {
     if (options === undefined) {
@@ -88,8 +97,12 @@ export class UPPopupProps {
     this.onShowChange = options.onShowChange;
     this.onClose = options.onClose;
     this.onOpen = options.onOpen;
+    this.onClosed = options.onClosed;
+    this.onClick = options.onClick;
     this.onClickOverlay = options.onClickOverlay;
     this.contentBuilder = options.contentBuilder;
+    this.triggerBuilder = options.triggerBuilder;
+    this.bottomBuilder = options.bottomBuilder;
   }
 }
 
@@ -152,7 +165,7 @@ export struct UPPopup {
 
   private panelColor(): string {
     const style = UPStyle.parse(this.props.customStyle);
-    return style.backgroundColor ?? UPColor.parse(this.props.bgColor, UP_DEFAULT_THEME, '#ffffff');
+    return style.backgroundColor ?? UPColor.parse(this.props.bgColor, UP_DEFAULT_THEME, UPColor.adaptive('#ffffff', 'card-bg-color'));
   }
 
   private panelPadding(): UPEdgeValues {
@@ -175,9 +188,11 @@ export struct UPPopup {
     return Math.max(0, upNumber(this.props.zIndex, 1001));
   }
 
+  /** 上游 close 与 closed 是动画前后的一对事件；ArkUI 立即完成，两者同帧触发。/ Upstream close/closed pair. */
   private close(reason: UPPopupCloseReason): void {
     this.props.onClose?.({ reason });
     this.props.onShowChange?.(false);
+    this.props.onClosed?.({ reason });
   }
 
   private clickOverlay(): void {
@@ -213,6 +228,7 @@ export struct UPPopup {
       .onClick(() => {
         if (upBoolean(this.props.touchable, true)) {
           // A panel click is intentionally consumed so it does not close its overlay.
+          this.props.onClick?.();
         }
       })
 
@@ -293,6 +309,7 @@ export struct UPPopup {
             .onClick(() => this.clickOverlay())
         }
         this.placement()
+        this.bottomRegion()
       }
       .width('100%')
       .height('100%')
@@ -301,7 +318,20 @@ export struct UPPopup {
     }
   }
 
+  @Builder
+  private triggerRegion() {
+    UPSlotRegion({ contentBuilder: this.props.triggerBuilder })
+  }
+
+  @Builder
+  private bottomRegion() {
+    UPSlotRegion({ contentBuilder: this.props.bottomBuilder })
+  }
+
   build() {
-    this.content()
+    Stack() {
+      this.triggerRegion()
+      this.content()
+    }
   }
 }

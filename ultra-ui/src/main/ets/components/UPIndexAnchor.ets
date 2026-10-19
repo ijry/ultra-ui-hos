@@ -40,7 +40,7 @@ export struct UPIndexAnchor {
     Row() {
       Text(String(this.props.text ?? ''))
         .fontSize(UPUnit.parse(this.props.size, 375, 14))
-        .fontColor(UPColor.parse(this.props.color, UP_DEFAULT_THEME, '#606266'))
+        .fontColor(UPColor.parse(this.props.color, UP_DEFAULT_THEME, UPColor.neutral('content', '#606266')))
     }
     .width(UPStyle.parse(this.props.customStyle).width ?? '100%')
     .height(Math.max(1, UPUnit.parse(this.props.height, 375, 32)))

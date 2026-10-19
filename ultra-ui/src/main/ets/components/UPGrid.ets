@@ -3,12 +3,19 @@ import { UPStyle } from '../core/UPStyle';
 import { UPUnit } from '../core/UPUnit';
 import { upLayoutEnum, upLayoutInt, UPGridLayoutContext } from '../internal/UPLayoutContexts';
 
+/** 上游 u-grid 的 `click` 事件载荷。/ Payload of the upstream grid click event. */
+export interface UPGridClickEvent {
+  name: UPRawValue;
+  index: number;
+}
+
 export interface UPGridOptions {
   col?: UPRawValue;
   border?: UPRawValue;
   align?: UPRawValue;
   gap?: UPRawValue;
   customStyle?: UPStyleInput;
+  onClick?: (event: UPGridClickEvent) => void;
   contentBuilder?: UPBuilder;
 }
 
@@ -19,6 +26,7 @@ export class UPGridProps {
   align: UPRawValue = 'left';
   gap: UPRawValue = '0px';
   customStyle: UPStyleInput = undefined;
+  onClick?: (event: UPGridClickEvent) => void;
   contentBuilder?: UPBuilder;
 
   constructor(options?: UPGridOptions) {
@@ -30,6 +38,7 @@ export class UPGridProps {
     this.align = options.align ?? this.align;
     this.gap = options.gap ?? this.gap;
     this.customStyle = options.customStyle;
+    this.onClick = options.onClick;
     this.contentBuilder = options.contentBuilder;
   }
 }
@@ -61,7 +70,9 @@ export struct UPGrid {
       this.gridAlign(),
       this.gridGap()
     );
-    this.gridContext.beginComposition();
+    this.gridContext.beginComposition((name: UPRawValue, index: number): void => {
+      this.props.onClick?.({ name: name, index: index });
+    });
   }
 
   private gridColumns(): number {

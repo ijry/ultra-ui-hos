@@ -123,7 +123,7 @@ export struct UPBadge {
     if (upBoolean(this.props.inverted, false)) {
       return style.color ?? UPColor.parse(this.props.color, UP_DEFAULT_THEME, typeColor);
     }
-    return style.color ?? UPColor.parse(this.props.color, UP_DEFAULT_THEME, '#ffffff');
+    return style.color ?? UPColor.parse(this.props.color, UP_DEFAULT_THEME, UPColor.adaptive('#ffffff', 'card-bg-color'));
   }
 
   private radius(): number {

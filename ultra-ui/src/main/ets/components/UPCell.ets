@@ -5,6 +5,7 @@ import { UPStyle } from '../core/UPStyle';
 import { UPEdgeValues, UPUnit } from '../core/UPUnit';
 import { UP_DEFAULT_THEME } from '../core/UPTheme';
 import { UPIcon, UPIconProps } from './UPIcon';
+import { UPSlotRegion } from '../internal/UPSlotRegion';
 
 export interface UPCellClickEvent {
   name: UPRawValue;
@@ -37,6 +38,12 @@ export interface UPCellOptions {
   diagnostics?: UPCompatibilityDiagnostics;
   onClick?: (event: UPCellClickEvent) => void;
   rightBuilder?: UPBuilder;
+  iconBuilder?: UPBuilder;
+  titleBuilder?: UPBuilder;
+  labelBuilder?: UPBuilder;
+  valueBuilder?: UPBuilder;
+  rightIconBuilder?: UPBuilder;
+  righticonBuilder?: UPBuilder;
 }
 
 export class UPCellProps {
@@ -64,6 +71,12 @@ export class UPCellProps {
   diagnostics?: UPCompatibilityDiagnostics;
   onClick?: (event: UPCellClickEvent) => void;
   rightBuilder?: UPBuilder;
+  iconBuilder?: UPBuilder;
+  titleBuilder?: UPBuilder;
+  labelBuilder?: UPBuilder;
+  valueBuilder?: UPBuilder;
+  rightIconBuilder?: UPBuilder;
+  righticonBuilder?: UPBuilder;
 
   constructor(options?: UPCellOptions) {
     if (options === undefined) {
@@ -93,6 +106,12 @@ export class UPCellProps {
     this.diagnostics = options.diagnostics;
     this.onClick = options.onClick;
     this.rightBuilder = options.rightBuilder;
+    this.iconBuilder = options.iconBuilder;
+    this.titleBuilder = options.titleBuilder;
+    this.labelBuilder = options.labelBuilder;
+    this.valueBuilder = options.valueBuilder;
+    this.rightIconBuilder = options.rightIconBuilder;
+    this.righticonBuilder = options.righticonBuilder;
   }
 }
 
@@ -171,17 +190,17 @@ export struct UPCell {
 
   private titleColor(): string {
     const style = UPStyle.parse(this.props.titleStyle);
-    return style.color ?? UP_DEFAULT_THEME.main;
+    return style.color ?? UPColor.neutral('main', '#303133');
   }
 
   private labelColor(): string {
     const style = UPStyle.parse(this.props.labelStyle);
-    return style.color ?? UP_DEFAULT_THEME.tips;
+    return style.color ?? UPColor.neutral('tips', '#909399');
   }
 
   private valueColor(): string {
     const style = UPStyle.parse(this.props.valueStyle);
-    return style.color ?? UP_DEFAULT_THEME.content;
+    return style.color ?? UPColor.neutral('content', '#606266');
   }
 
   private valueSize(): number {
@@ -216,7 +235,9 @@ export struct UPCell {
   @Builder
   private leftContent() {
     Row({ space: 10 }) {
-      if (this.hasIcon()) {
+      if (this.props.iconBuilder !== undefined) {
+        this.iconRegion()
+      } else if (this.hasIcon()) {
         UPIcon({ props: new UPIconProps({
           name: this.display(this.props.icon),
           color: this.props.iconColor,
@@ -229,12 +250,16 @@ export struct UPCell {
           .fontColor(UP_DEFAULT_THEME.error)
       }
       Column({ space: 4 }) {
-        if (this.title().length > 0) {
+        if (this.props.titleBuilder !== undefined) {
+          this.titleRegion()
+        } else if (this.title().length > 0) {
           Text(this.title())
             .fontSize(this.titleSize())
             .fontColor(this.titleColor())
         }
-        if (this.label().length > 0) {
+        if (this.props.labelBuilder !== undefined) {
+          this.labelRegion()
+        } else if (this.label().length > 0) {
           Text(this.label())
             .fontSize(this.labelSize())
             .fontColor(this.labelColor())
@@ -248,7 +273,9 @@ export struct UPCell {
   @Builder
   private rightContent() {
     Row({ space: 8 }) {
-      if (this.value().length > 0) {
+      if (this.props.valueBuilder !== undefined) {
+        this.valueRegion()
+      } else if (this.value().length > 0) {
         Text(this.value())
           .fontSize(this.valueSize())
           .fontColor(this.valueColor())
@@ -260,12 +287,17 @@ export struct UPCell {
           color: this.props.rightIconColor,
           size: 18
         }) })
+      } else if (this.props.rightIconBuilder !== undefined) {
+        this.rightIconRegion()
+      }
+      if (this.props.righticonBuilder !== undefined) {
+        this.righticonRegion()
       }
       this.rightBuilder()
       if (upBoolean(this.props.arrow, false)) {
         Text(this.arrowText())
           .fontSize(22)
-          .fontColor(UP_DEFAULT_THEME.light)
+          .fontColor(UPColor.neutral('light', '#c0c4cc'))
       }
     }
   }
@@ -281,9 +313,39 @@ export struct UPCell {
     .padding(this.cellPadding())
     .alignItems(upBoolean(this.props.center, false) ? VerticalAlign.Center : VerticalAlign.Top)
     .borderWidth({ bottom: upBoolean(this.props.border, true) ? 1 : 0 })
-    .borderColor('#eeeeee')
+    .borderColor(UPColor.adaptive('#eeeeee', 'border-color'))
     .opacity(upBoolean(this.props.disabled, false) ? 0.5 : 1)
     .onClick(() => this.click())
+  }
+
+  @Builder
+  private iconRegion() {
+    UPSlotRegion({ contentBuilder: this.props.iconBuilder })
+  }
+
+  @Builder
+  private titleRegion() {
+    UPSlotRegion({ contentBuilder: this.props.titleBuilder })
+  }
+
+  @Builder
+  private labelRegion() {
+    UPSlotRegion({ contentBuilder: this.props.labelBuilder })
+  }
+
+  @Builder
+  private valueRegion() {
+    UPSlotRegion({ contentBuilder: this.props.valueBuilder })
+  }
+
+  @Builder
+  private rightIconRegion() {
+    UPSlotRegion({ contentBuilder: this.props.rightIconBuilder })
+  }
+
+  @Builder
+  private righticonRegion() {
+    UPSlotRegion({ contentBuilder: this.props.righticonBuilder })
   }
 
   build() {

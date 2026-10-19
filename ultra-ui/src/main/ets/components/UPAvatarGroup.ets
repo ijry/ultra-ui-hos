@@ -2,6 +2,7 @@ import { UPRawValue, UPStyleInput, upBoolean, upString } from '../core/UPTypes';
 import { UPStyle } from '../core/UPStyle';
 import { UPUnit } from '../core/UPUnit';
 import { UPAvatar, UPAvatarProps } from './UPAvatar';
+import { UPColor } from '../core/UPColor';
 
 export interface UPAvatarGroupSource {
   src?: UPRawValue;
@@ -9,6 +10,12 @@ export interface UPAvatarGroupSource {
   avatar?: UPRawValue;
   text?: UPRawValue;
   name?: UPRawValue;
+}
+
+/** 上游 showMore 事件：点击「+N」提示时触发。/ Upstream showMore payload. */
+export interface UPAvatarGroupShowMoreEvent {
+  hiddenCount: number;
+  total: number;
 }
 
 export interface UPAvatarGroupOptions {
@@ -22,6 +29,7 @@ export interface UPAvatarGroupOptions {
   gap?: UPRawValue;
   extraValue?: UPRawValue;
   customStyle?: UPStyleInput;
+  onShowMore?: (event: UPAvatarGroupShowMoreEvent) => void;
 }
 
 export class UPAvatarGroupProps {
@@ -34,6 +42,7 @@ export class UPAvatarGroupProps {
   keyName: UPRawValue = 'url';
   gap: UPRawValue = 4;
   extraValue: UPRawValue = '';
+  onShowMore?: (event: UPAvatarGroupShowMoreEvent) => void;
   customStyle: UPStyleInput = undefined;
 
   constructor(options?: UPAvatarGroupOptions) {
@@ -49,6 +58,7 @@ export class UPAvatarGroupProps {
     this.keyName = options.keyName ?? this.keyName;
     this.gap = options.gap ?? this.gap;
     this.extraValue = options.extraValue ?? this.extraValue;
+    this.onShowMore = options.onShowMore;
     this.customStyle = options.customStyle;
   }
 }
@@ -149,12 +159,15 @@ export struct UPAvatarGroup {
         Stack() {
           Text('+' + String(this.hiddenCount()) + rawText(this.props.extraValue))
             .fontSize(12)
-            .fontColor('#606266')
+            .fontColor(UPColor.adaptive('#606266', 'content-color'))
         }
         .width(this.sizeValue())
         .height(this.sizeValue())
-        .backgroundColor('#f3f4f6')
+        .backgroundColor(UPColor.adaptive('#f3f4f6', 'bg-color'))
         .borderRadius(upString(this.props.shape, 'circle') === 'square' ? 4 : this.sizeValue() / 2)
+        .onClick((): void => {
+          this.props.onShowMore?.({ hiddenCount: this.hiddenCount(), total: this.props.urls.length });
+        })
       }
     }
     .width(this.groupWidth())

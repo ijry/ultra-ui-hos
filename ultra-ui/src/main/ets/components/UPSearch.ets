@@ -1,10 +1,12 @@
-import { UPRawValue, UPStyleInput, upBoolean, upNumber, upString } from '../core/UPTypes';
+import { UPBuilder, UPRawValue, UPStyleInput, upBoolean, upNumber, upString } from '../core/UPTypes';
 import { UPCompatibilityDiagnostics, UP_SILENT_DIAGNOSTICS } from '../core/UPDiagnostics';
 import { UPColor } from '../core/UPColor';
 import { UPStyle } from '../core/UPStyle';
 import { UP_DEFAULT_THEME } from '../core/UPTheme';
 import { UPEdgeValues, UPUnit } from '../core/UPUnit';
 import { UPIcon, UPIconProps } from './UPIcon';
+import { UPSlotRegion } from '../internal/UPSlotRegion';
+import { UPI18n } from '../core/UPI18n';
 
 export interface UPSearchChangeEvent {
   value: string;
@@ -55,6 +57,8 @@ export interface UPSearchOptions {
   onBlur?: (event: UPSearchChangeEvent) => void;
   onClick?: () => void;
   onClickIcon?: (event: UPSearchConfirmEvent) => void;
+  labelBuilder?: UPBuilder;
+  inputRightBuilder?: UPBuilder;
 }
 
 export class UPSearchProps {
@@ -62,12 +66,12 @@ export class UPSearchProps {
   value: UPRawValue = '';
   shape: UPRawValue = 'round';
   bgColor: UPRawValue = '';
-  placeholder: UPRawValue = '请输入关键词';
+  placeholder: UPRawValue = UPI18n.t('up.search.placeholder');
   clearabled: UPRawValue = true;
   onlyClearableOnFocused: UPRawValue = false;
   focus: UPRawValue = false;
   showAction: UPRawValue = true;
-  actionText: UPRawValue = '搜索';
+  actionText: UPRawValue = UPI18n.t('up.common.search');
   label: UPRawValue = '';
   inputAlign: UPRawValue = 'left';
   disabled: UPRawValue = false;
@@ -97,6 +101,8 @@ export class UPSearchProps {
   onBlur?: (event: UPSearchChangeEvent) => void;
   onClick?: () => void;
   onClickIcon?: (event: UPSearchConfirmEvent) => void;
+  labelBuilder?: UPBuilder;
+  inputRightBuilder?: UPBuilder;
 
   constructor(options?: UPSearchOptions) {
     if (options === undefined) {
@@ -141,6 +147,8 @@ export class UPSearchProps {
     this.onBlur = options.onBlur;
     this.onClick = options.onClick;
     this.onClickIcon = options.onClickIcon;
+    this.labelBuilder = options.labelBuilder;
+    this.inputRightBuilder = options.inputRightBuilder;
   }
 }
 
@@ -297,7 +305,7 @@ export struct UPSearch {
     if (upBoolean(this.props.disabled, false)) {
       return '#c8c9cc';
     }
-    return style.color ?? custom.color ?? UPColor.parse(this.props.color, UP_DEFAULT_THEME, '#303133');
+    return style.color ?? custom.color ?? UPColor.parse(this.props.color, UP_DEFAULT_THEME, UPColor.neutral('main', '#303133'));
   }
 
   private placeholderColorValue(): string {
@@ -402,13 +410,16 @@ export struct UPSearch {
   @Builder
   private content() {
     Row({ space: 8 }) {
-      if (rawText(this.props.label).length > 0) {
+      if (this.props.labelBuilder !== undefined) {
+        this.labelRegion()
+      } else if (rawText(this.props.label).length > 0) {
         Text(rawText(this.props.label))
           .fontSize(this.inputFontSize())
           .fontColor(this.inputColor())
       }
       Row() {
         this.inputContent()
+        this.inputRightRegion()
       }
       .layoutWeight(1)
       .height(this.searchHeight())
@@ -433,6 +444,16 @@ export struct UPSearch {
     .margin(this.marginValue())
     .opacity(upBoolean(this.props.disabled, false) ? 0.58 : 1)
     .id('up-search')
+  }
+
+  @Builder
+  private labelRegion() {
+    UPSlotRegion({ contentBuilder: this.props.labelBuilder })
+  }
+
+  @Builder
+  private inputRightRegion() {
+    UPSlotRegion({ contentBuilder: this.props.inputRightBuilder })
   }
 
   build() {

@@ -1,9 +1,10 @@
-import { UPRawValue, UPStyleInput, upBoolean, upString } from '../core/UPTypes';
+import { UPBuilder, UPRawValue, UPStyleInput, upBoolean, upString } from '../core/UPTypes';
 import { UPColor } from '../core/UPColor';
 import { UPStyle } from '../core/UPStyle';
 import { UP_DEFAULT_THEME } from '../core/UPTheme';
 import { UPUnit } from '../core/UPUnit';
 import { UPIcon, UPIconProps } from './UPIcon';
+import { UPSlotRegion } from '../internal/UPSlotRegion';
 
 export interface UPAvatarClickEvent {
   name: UPRawValue;
@@ -28,6 +29,7 @@ export interface UPAvatarOptions {
   name?: UPRawValue;
   customStyle?: UPStyleInput;
   onClick?: (event: UPAvatarClickEvent) => void;
+  contentBuilder?: UPBuilder;
 }
 
 export class UPAvatarProps {
@@ -47,6 +49,7 @@ export class UPAvatarProps {
   name: UPRawValue = '';
   customStyle: UPStyleInput = undefined;
   onClick?: (event: UPAvatarClickEvent) => void;
+  contentBuilder?: UPBuilder;
 
   constructor(options?: UPAvatarOptions) {
     if (options === undefined) {
@@ -68,6 +71,7 @@ export class UPAvatarProps {
     this.name = options.name ?? this.name;
     this.customStyle = options.customStyle;
     this.onClick = options.onClick;
+    this.contentBuilder = options.contentBuilder;
   }
 }
 
@@ -144,12 +148,12 @@ export struct UPAvatar {
       }
       return UP_AVATAR_COLORS[Math.abs(index) % UP_AVATAR_COLORS.length];
     }
-    return UPColor.parse(this.props.bgColor, UP_DEFAULT_THEME, '#c0c4cc');
+    return UPColor.parse(this.props.bgColor, UP_DEFAULT_THEME, UPColor.neutral('light', '#c0c4cc'));
   }
 
   private foreground(): string {
     const style = UPStyle.parse(this.props.customStyle);
-    return style.color ?? UPColor.parse(this.props.color, UP_DEFAULT_THEME, '#ffffff');
+    return style.color ?? UPColor.parse(this.props.color, UP_DEFAULT_THEME, UPColor.adaptive('#ffffff', 'card-bg-color'));
   }
 
   private click(): void {
@@ -159,7 +163,9 @@ export struct UPAvatar {
   @Builder
   private content() {
     Stack() {
-      if (this.source().length > 0 && isLocalImageSource(this.source())) {
+      if (this.props.contentBuilder !== undefined) {
+        this.slotRegion()
+      } else if (this.source().length > 0 && isLocalImageSource(this.source())) {
         Image(this.source())
           .width(this.sizeValue())
           .height(this.sizeValue())
@@ -181,6 +187,11 @@ export struct UPAvatar {
     .onClick((): void => {
       this.click();
     })
+  }
+
+  @Builder
+  private slotRegion() {
+    UPSlotRegion({ contentBuilder: this.props.contentBuilder })
   }
 
   build() {

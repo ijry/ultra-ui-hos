@@ -177,7 +177,7 @@ export struct UPCodeInput {
 
   private codeColor(): string {
     const style = UPStyle.parse(this.props.customStyle);
-    return style.color ?? UPColor.parse(this.props.color, UP_DEFAULT_THEME, '#606266');
+    return style.color ?? UPColor.parse(this.props.color, UP_DEFAULT_THEME, UPColor.neutral('content', '#606266'));
   }
 
   private cellBorderColor(): string {

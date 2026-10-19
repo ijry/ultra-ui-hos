@@ -1,8 +1,9 @@
-import { UPRawValue, UPStyleInput, upBoolean, upNumber } from '../core/UPTypes';
+import { UPBuilder, UPRawValue, UPStyleInput, upBoolean, upNumber } from '../core/UPTypes';
 import { UPColor } from '../core/UPColor';
 import { UPStyle } from '../core/UPStyle';
 import { UPUnit } from '../core/UPUnit';
 import { UP_DEFAULT_THEME } from '../core/UPTheme';
+import { UPSlotRegion } from '../internal/UPSlotRegion';
 
 export interface UPLineProgressOptions {
   percentage?: UPRawValue;
@@ -14,6 +15,7 @@ export interface UPLineProgressOptions {
   stripedActive?: UPRawValue;
   duration?: UPRawValue;
   customStyle?: UPStyleInput;
+  contentBuilder?: UPBuilder;
 }
 
 export class UPLineProgressProps {
@@ -26,6 +28,7 @@ export class UPLineProgressProps {
   stripedActive: UPRawValue = false;
   duration: UPRawValue = 30;
   customStyle: UPStyleInput = undefined;
+  contentBuilder?: UPBuilder;
 
   constructor(options?: UPLineProgressOptions) {
     if (options === undefined) {
@@ -40,6 +43,7 @@ export class UPLineProgressProps {
     this.stripedActive = options.stripedActive ?? this.stripedActive;
     this.duration = options.duration ?? this.duration;
     this.customStyle = options.customStyle;
+    this.contentBuilder = options.contentBuilder;
   }
 }
 
@@ -60,6 +64,11 @@ export struct UPLineProgress {
     const style = UPStyle.parse(this.props.customStyle);
     return style.backgroundColor ?? style.background ?? UPColor.parse(this.props.activeColor, UP_DEFAULT_THEME, UP_DEFAULT_THEME.primary);
   }
+  @Builder
+  private slotRegion() {
+    UPSlotRegion({ contentBuilder: this.props.contentBuilder })
+  }
+
 
   build() {
     Row({ space: 8 }) {
@@ -78,10 +87,12 @@ export struct UPLineProgress {
       }
       .layoutWeight(1)
       .height(this.barHeight())
-      if (upBoolean(this.props.showText, true)) {
+      if (this.props.contentBuilder !== undefined) {
+        this.slotRegion()
+      } else if (upBoolean(this.props.showText, true)) {
         Text(String(Math.round(this.percent())) + '%')
           .fontSize(12)
-          .fontColor(UP_DEFAULT_THEME.content)
+          .fontColor(UPColor.neutral('content', '#606266'))
       }
     }
     .width('100%')

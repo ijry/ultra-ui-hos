@@ -210,12 +210,12 @@ export struct UPText {
       return style.color;
     }
     if (requested.length > 0) {
-      return UPColor.parse(requested, UP_DEFAULT_THEME, UP_DEFAULT_THEME.content);
+      return UPColor.parse(requested, UP_DEFAULT_THEME, UPColor.neutral('content', '#606266'));
     }
     if (this.mode() === 'link') {
       return UP_DEFAULT_THEME.primary;
     }
-    return UP_DEFAULT_THEME.content;
+    return UPColor.neutral('content', '#606266');
   }
 
   private fontSize(): number {

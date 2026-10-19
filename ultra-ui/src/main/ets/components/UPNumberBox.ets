@@ -1,8 +1,9 @@
-import { UPRawValue, UPStyleInput, upBoolean } from '../core/UPTypes';
+import { UPBuilder, UPRawValue, UPStyleInput, upBoolean } from '../core/UPTypes';
 import { UPColor } from '../core/UPColor';
 import { UPStyle } from '../core/UPStyle';
 import { UP_DEFAULT_THEME } from '../core/UPTheme';
 import { UPUnit } from '../core/UPUnit';
+import { UPSlotRegion } from '../internal/UPSlotRegion';
 
 export interface UPNumberBoxChangeEvent {
   value: number;
@@ -43,6 +44,11 @@ export interface UPNumberBoxOptions {
   onPlus?: (event: UPNumberBoxChangeEvent) => void;
   onMinus?: (event: UPNumberBoxChangeEvent) => void;
   onBlur?: (event: UPNumberBoxChangeEvent) => void;
+  onFocus?: (event: UPNumberBoxChangeEvent) => void;
+  onOverlimit?: (type: string) => void;
+  minusBuilder?: UPBuilder;
+  plusBuilder?: UPBuilder;
+  inputBuilder?: UPBuilder;
 }
 
 export class UPNumberBoxProps {
@@ -78,6 +84,11 @@ export class UPNumberBoxProps {
   onPlus?: (event: UPNumberBoxChangeEvent) => void;
   onMinus?: (event: UPNumberBoxChangeEvent) => void;
   onBlur?: (event: UPNumberBoxChangeEvent) => void;
+  onFocus?: (event: UPNumberBoxChangeEvent) => void;
+  onOverlimit?: (type: string) => void;
+  minusBuilder?: UPBuilder;
+  plusBuilder?: UPBuilder;
+  inputBuilder?: UPBuilder;
 
   constructor(options?: UPNumberBoxOptions) {
     if (options === undefined) {
@@ -115,6 +126,11 @@ export class UPNumberBoxProps {
     this.onPlus = options.onPlus;
     this.onMinus = options.onMinus;
     this.onBlur = options.onBlur;
+    this.onFocus = options.onFocus;
+    this.onOverlimit = options.onOverlimit;
+    this.minusBuilder = options.minusBuilder;
+    this.plusBuilder = options.plusBuilder;
+    this.inputBuilder = options.inputBuilder;
   }
 }
 
@@ -221,6 +237,8 @@ export struct UPNumberBox {
       .borderRadius(UPUnit.parse(this.props.buttonRadius, 375, 4))
       .onClick((): void => {
         if (!enabled) {
+          /** 上游 overlimit：越界时只抛事件不改值。/ Upstream overlimit fires without changing the value. */
+          this.props.onOverlimit?.(type);
           return;
         }
         const delta: number = rawNumber(this.props.step, 1);
@@ -228,29 +246,59 @@ export struct UPNumberBox {
       })
   }
 
+  @Builder
+  private minusRegion() {
+    UPSlotRegion({ contentBuilder: this.props.minusBuilder })
+  }
+
+  @Builder
+  private plusRegion() {
+    UPSlotRegion({ contentBuilder: this.props.plusBuilder })
+  }
+
+  @Builder
+  private inputRegion() {
+    UPSlotRegion({ contentBuilder: this.props.inputBuilder })
+  }
+
   build() {
     Row({ space: 2 }) {
       if (upBoolean(this.props.showMinus, true)) {
-        this.button('−', this.canMinus(), 'minus')
+        if (this.props.minusBuilder !== undefined) {
+          this.minusRegion()
+        } else {
+          this.button('−', this.canMinus(), 'minus')
+        }
       }
-      TextInput({ text: rawText(this.innerValue), placeholder: '' })
-        .type(InputType.Number)
-        .enabled(!upBoolean(this.props.disabled, false) && !upBoolean(this.props.disabledInput, false))
-        .fontSize(14)
-        .fontColor(UPColor.parse(this.props.color, UP_DEFAULT_THEME, '#323233'))
-        .textAlign(TextAlign.Center)
-        .width(UPUnit.parse(this.props.inputWidth, 375, 35))
-        .height(UPUnit.parse(this.props.buttonSize, 375, 30))
-        .backgroundColor(UPColor.parse(this.props.inputBgColor, UP_DEFAULT_THEME, '#f2f3f5'))
-        .borderWidth(0)
-        .onChange((value: string): void => {
-          this.innerValue = this.normalized(rawNumber(value, this.innerValue));
-        })
-        .onBlur((): void => {
-          this.emit(this.innerValue, 'blur');
-        })
+      if (this.props.inputBuilder !== undefined) {
+        this.inputRegion()
+      } else {
+        TextInput({ text: rawText(this.innerValue), placeholder: '' })
+          .type(InputType.Number)
+          .enabled(!upBoolean(this.props.disabled, false) && !upBoolean(this.props.disabledInput, false))
+          .fontSize(14)
+          .fontColor(UPColor.parse(this.props.color, UP_DEFAULT_THEME, '#323233'))
+          .textAlign(TextAlign.Center)
+          .width(UPUnit.parse(this.props.inputWidth, 375, 35))
+          .height(UPUnit.parse(this.props.buttonSize, 375, 30))
+          .backgroundColor(UPColor.parse(this.props.inputBgColor, UP_DEFAULT_THEME, '#f2f3f5'))
+          .borderWidth(0)
+          .onChange((value: string): void => {
+            this.innerValue = this.normalized(rawNumber(value, this.innerValue));
+          })
+          .onFocus((): void => {
+            this.props.onFocus?.({ value: this.innerValue, name: this.props.name, type: 'focus' });
+          })
+          .onBlur((): void => {
+            this.emit(this.innerValue, 'blur');
+          })
+      }
       if (upBoolean(this.props.showPlus, true)) {
-        this.button('+', this.canPlus(), 'plus')
+        if (this.props.plusBuilder !== undefined) {
+          this.plusRegion()
+        } else {
+          this.button('+', this.canPlus(), 'plus')
+        }
       }
     }
     .width(this.numberBoxWidth())

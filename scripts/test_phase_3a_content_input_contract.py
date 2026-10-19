@@ -69,7 +69,7 @@ DEFAULTS = {
     "UPText": (("show", "true"), ("mode", "'text'"), ("lines", "1"), ("size", "15"), ("decoration", "'none'"), ("align", "'left'"), ("wordWrap", "'normal'"), ("bold", "false"), ("block", "false")),
     "UPImage": (("mode", "'aspectFill'"), ("width", "300"), ("height", "225"), ("shape", "'square'"), ("radius", "0"), ("showLoading", "true"), ("showError", "true"), ("bgColor", "'#f3f4f6'")),
     "UPEmpty": (("textColor", "'#c0c4cc'"), ("textSize", "14"), ("iconSize", "90"), ("mode", "'data'"), ("width", "160"), ("height", "160"), ("show", "true")),
-    "UPLoadingPage": (("loadingText", "'正在加载'"), ("loadingMode", "'circle'"), ("loading", "false"), ("fontSize", "19"), ("iconSize", "19"), ("loadingColor", "'#C8C8C8'"), ("zIndex", "10")),
+    "UPLoadingPage": (("loadingText", "UPI18n.t('up.common.loading2')"), ("loadingMode", "'circle'"), ("loading", "false"), ("fontSize", "19"), ("iconSize", "19"), ("loadingColor", "'#C8C8C8'"), ("zIndex", "10")),
 }
 
 FORBIDDEN = ("WebView", "FastView", ".xyfv", "http://", "https://", "@ohos.net", "request(")

@@ -58,7 +58,7 @@ export struct UPDropdown {
       ? upBoolean(this.props.closeOnClickOverlay, true) : upBoolean(this.props.closeOnClickMask, true);
     if (enabled) this.dropdownContext.close();
   }
-  private dropdownBackground(): string { return UPColor.parse(this.props.bgColor, UP_DEFAULT_THEME, '#ffffff'); }
+  private dropdownBackground(): string { return UPColor.parse(this.props.bgColor, UP_DEFAULT_THEME, UPColor.adaptive('#ffffff', 'card-bg-color')); }
   private radius(): number { return UPStyle.parse(this.props.customStyle).borderRadius ?? Math.max(0, upNumber(this.props.borderRadius, 0)); }
 
   @Builder private menuLayer() {

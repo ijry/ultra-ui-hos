@@ -1,9 +1,23 @@
-import { UPRawValue, UPStyleInput, upBoolean, upString } from '../core/UPTypes';
+import { UPBuilder, UPRawValue, UPStyleInput, upBoolean, upString } from '../core/UPTypes';
 import { UPStyle } from '../core/UPStyle';
 import { UPUnit } from '../core/UPUnit';
 import { UP_DEFAULT_THEME } from '../core/UPTheme';
 import { UPLoadingIcon, UPLoadingIconProps } from './UPLoadingIcon';
 import { UPIcon, UPIconProps } from './UPIcon';
+import { UPSlotRegion } from '../internal/UPSlotRegion';
+import { UPCompatibilityDiagnostics, UP_SILENT_DIAGNOSTICS } from '../core/UPDiagnostics';
+
+/** 上游 open-type 回调的共享载荷。/ Shared payload of the upstream open-type callbacks. */
+export interface UPButtonOpenTypeEvent {
+  openType: string;
+  message: string;
+}
+
+/** 上游 open-type 的取值。/ Accepted open-type values upstream. */
+export const UP_BUTTON_OPEN_TYPES: Array<string> = [
+  'getPhoneNumber', 'getUserInfo', 'openSetting', 'launchApp', 'agreePrivacyAuthorization',
+  'contact', 'share', 'feedback'
+];
 
 export interface UPButtonOptions {
   hairline?: UPRawValue;
@@ -36,7 +50,15 @@ export interface UPButtonOptions {
   color?: UPRawValue;
   stop?: UPRawValue;
   customStyle?: UPStyleInput;
+  diagnostics?: UPCompatibilityDiagnostics;
   onClick?: () => void;
+  onGetPhoneNumber?: (event: UPButtonOpenTypeEvent) => void;
+  onGetUserInfo?: (event: UPButtonOpenTypeEvent) => void;
+  onOpenSetting?: (event: UPButtonOpenTypeEvent) => void;
+  onLaunchApp?: (event: UPButtonOpenTypeEvent) => void;
+  onAgreePrivacyAuthorization?: (event: UPButtonOpenTypeEvent) => void;
+  onError?: (event: UPButtonOpenTypeEvent) => void;
+  contentBuilder?: UPBuilder;
 }
 
 export class UPButtonProps {
@@ -70,7 +92,15 @@ export class UPButtonProps {
   color: UPRawValue = '';
   stop: UPRawValue = true;
   customStyle: UPStyleInput = undefined;
+  diagnostics?: UPCompatibilityDiagnostics;
   onClick?: () => void;
+  onGetPhoneNumber?: (event: UPButtonOpenTypeEvent) => void;
+  onGetUserInfo?: (event: UPButtonOpenTypeEvent) => void;
+  onOpenSetting?: (event: UPButtonOpenTypeEvent) => void;
+  onLaunchApp?: (event: UPButtonOpenTypeEvent) => void;
+  onAgreePrivacyAuthorization?: (event: UPButtonOpenTypeEvent) => void;
+  onError?: (event: UPButtonOpenTypeEvent) => void;
+  contentBuilder?: UPBuilder;
 
   constructor(options?: UPButtonOptions) {
     if (options === undefined) {
@@ -106,7 +136,15 @@ export class UPButtonProps {
     this.color = options.color ?? this.color;
     this.stop = options.stop ?? this.stop;
     this.customStyle = options.customStyle;
+    this.diagnostics = options.diagnostics;
     this.onClick = options.onClick;
+    this.onGetPhoneNumber = options.onGetPhoneNumber;
+    this.onGetUserInfo = options.onGetUserInfo;
+    this.onOpenSetting = options.onOpenSetting;
+    this.onLaunchApp = options.onLaunchApp;
+    this.onAgreePrivacyAuthorization = options.onAgreePrivacyAuthorization;
+    this.onError = options.onError;
+    this.contentBuilder = options.contentBuilder;
   }
 }
 
@@ -137,6 +175,49 @@ export struct UPButton {
     }
     this.lastClickAt = now;
     this.props.onClick?.();
+    this.dispatchOpenType();
+  }
+
+  /**
+   * 上游 open-type 的五个回调由小程序与 App 平台提供；HarmonyOS 没有等价能力，
+   * 这里把请求原样交给宿主，并对未建模的取值报诊断。
+   * The upstream open-type callbacks come from mini-program and App platforms; here the
+   * request is forwarded to the host because HarmonyOS has no equivalent capability.
+   */
+  private dispatchOpenType(): void {
+    const openType: string = upString(this.props.openType, '').trim();
+    if (openType.length === 0) {
+      return;
+    }
+    const diagnostics: UPCompatibilityDiagnostics = this.props.diagnostics ?? UP_SILENT_DIAGNOSTICS;
+    if (!UP_BUTTON_OPEN_TYPES.includes(openType)) {
+      diagnostics.report('UPButton', 'openType', openType,
+        'only the upstream open-type values are modelled: ' + UP_BUTTON_OPEN_TYPES.join(', '));
+      this.props.onError?.({ openType, message: 'unsupported open type' });
+      return;
+    }
+    diagnostics.report('UPButton', 'openType', openType,
+      'platform open-type capabilities are unavailable, so the request is forwarded to the host callback');
+    const event: UPButtonOpenTypeEvent = { openType, message: 'delegated to the host' };
+    if (openType === 'getPhoneNumber') {
+      this.props.onGetPhoneNumber?.(event);
+      return;
+    }
+    if (openType === 'getUserInfo') {
+      this.props.onGetUserInfo?.(event);
+      return;
+    }
+    if (openType === 'openSetting') {
+      this.props.onOpenSetting?.(event);
+      return;
+    }
+    if (openType === 'launchApp') {
+      this.props.onLaunchApp?.(event);
+      return;
+    }
+    if (openType === 'agreePrivacyAuthorization') {
+      this.props.onAgreePrivacyAuthorization?.(event);
+    }
   }
 
   private buttonHeight(): number {
@@ -192,8 +273,12 @@ export struct UPButton {
         } else if (upString(this.props.icon, '').length > 0) {
           UPIcon({ props: new UPIconProps({ name: upString(this.props.icon, ''), color: this.props.iconColor }) })
         }
-        Text(upBoolean(this.props.loading, false) ? this.loadingText() : String(this.props.text ?? ''))
-          .fontSize(upString(this.props.size, 'normal').toLowerCase() === 'large' ? 16 : 14)
+        if (this.props.contentBuilder === undefined) {
+          Text(upBoolean(this.props.loading, false) ? this.loadingText() : String(this.props.text ?? ''))
+            .fontSize(upString(this.props.size, 'normal').toLowerCase() === 'large' ? 16 : 14)
+        } else {
+          UPSlotRegion({ contentBuilder: this.props.contentBuilder })
+        }
       }
     }
     .height(this.customHeight())

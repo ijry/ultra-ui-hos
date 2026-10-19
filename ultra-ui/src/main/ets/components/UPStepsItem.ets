@@ -2,6 +2,7 @@ import { UPRawValue, UPStyleInput } from '../core/UPTypes';
 import { UPStyle } from '../core/UPStyle';
 import { UPIcon, UPIconProps } from './UPIcon';
 import { UPStepStatus, UPStepsContext } from '../internal/UPNavigationContexts';
+import { UPColor } from '../core/UPColor';
 
 export interface UPStepsItemOptions {
   title?: UPRawValue; desc?: UPRawValue; iconSize?: UPRawValue; error?: UPRawValue; itemStyle?: UPStyleInput; customStyle?: UPStyleInput;
@@ -47,7 +48,7 @@ export struct UPStepsItem {
   @Builder private details() {
     Column({ space: 3 }) {
       this.titleBuilder(); if (String(this.props.title ?? '').length > 0) Text(String(this.props.title)).fontSize(14).fontColor(this.color())
-      this.descBuilder(); if (String(this.props.desc ?? '').length > 0) Text(String(this.props.desc)).fontSize(12).fontColor('#909399')
+      this.descBuilder(); if (String(this.props.desc ?? '').length > 0) Text(String(this.props.desc)).fontSize(12).fontColor(UPColor.adaptive('#909399', 'tips-color'))
       this.contentBuilder()
     }.alignItems(HorizontalAlign.Start).layoutWeight(1)
   }

@@ -1,8 +1,9 @@
-import { UPRawValue, UPStyleInput, upBoolean, upString } from '../core/UPTypes';
+import { UPBuilder, UPRawValue, UPStyleInput, upBoolean, upString } from '../core/UPTypes';
 import { UPColor } from '../core/UPColor';
 import { UPStyle } from '../core/UPStyle';
 import { UPUnit } from '../core/UPUnit';
 import { UP_DEFAULT_THEME } from '../core/UPTheme';
+import { UPSlotRegion } from '../internal/UPSlotRegion';
 
 export interface UPDividerClickEvent {
   text: string;
@@ -21,6 +22,7 @@ export interface UPDividerOptions {
   customStyle?: UPStyleInput;
   onTap?: (event: UPDividerClickEvent) => void;
   onClick?: (event: UPDividerClickEvent) => void;
+  contentBuilder?: UPBuilder;
 }
 
 export class UPDividerProps {
@@ -36,6 +38,7 @@ export class UPDividerProps {
   customStyle: UPStyleInput = undefined;
   onTap?: (event: UPDividerClickEvent) => void;
   onClick?: (event: UPDividerClickEvent) => void;
+  contentBuilder?: UPBuilder;
 
   constructor(options?: UPDividerOptions) {
     if (options === undefined) {
@@ -53,6 +56,7 @@ export class UPDividerProps {
     this.customStyle = options.customStyle;
     this.onTap = options.onTap;
     this.onClick = options.onClick;
+    this.contentBuilder = options.contentBuilder;
   }
 }
 
@@ -94,15 +98,22 @@ export struct UPDivider {
       Column()
         .width(4)
         .height(4)
-        .backgroundColor(UPColor.parse(this.props.textColor, UP_DEFAULT_THEME, UP_DEFAULT_THEME.tips))
+        .backgroundColor(UPColor.parse(this.props.textColor, UP_DEFAULT_THEME, UPColor.neutral('tips', '#909399')))
         .borderRadius(2)
+    } else if (this.props.contentBuilder !== undefined) {
+      this.slotRegion()
     } else if (this.label().length > 0) {
       Text(this.label())
         .fontSize(UPUnit.parse(this.props.textSize, 375, 14))
-        .fontColor(UPColor.parse(this.props.textColor, UP_DEFAULT_THEME, UP_DEFAULT_THEME.tips))
+        .fontColor(UPColor.parse(this.props.textColor, UP_DEFAULT_THEME, UPColor.neutral('tips', '#909399')))
         .padding({ left: 12, right: 12 })
     }
   }
+  @Builder
+  private slotRegion() {
+    UPSlotRegion({ contentBuilder: this.props.contentBuilder })
+  }
+
 
   build() {
     Row() {

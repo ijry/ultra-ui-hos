@@ -13,6 +13,18 @@ export interface UPTextareaConfirmEvent {
   key: string;
 }
 
+/** 上游 keyboardheightchange 事件。/ Upstream keyboardheightchange payload. */
+export interface UPTextareaKeyboardEvent {
+  height: number;
+  duration: number;
+}
+
+/** 上游 linechange 事件。/ Upstream linechange payload. */
+export interface UPTextareaLineEvent {
+  height: number;
+  lineCount: number;
+}
+
 export interface UPTextareaOptions {
   value?: UPRawValue;
   modelValue?: UPRawValue;
@@ -44,6 +56,8 @@ export interface UPTextareaOptions {
   onConfirm?: (event: UPTextareaConfirmEvent) => void;
   onFocus?: () => void;
   onBlur?: (event: UPTextareaChangeEvent) => void;
+  onKeyboardHeightChange?: (event: UPTextareaKeyboardEvent) => void;
+  onLineChange?: (event: UPTextareaLineEvent) => void;
 }
 
 export class UPTextareaProps {
@@ -77,6 +91,8 @@ export class UPTextareaProps {
   onConfirm?: (event: UPTextareaConfirmEvent) => void;
   onFocus?: () => void;
   onBlur?: (event: UPTextareaChangeEvent) => void;
+  onKeyboardHeightChange?: (event: UPTextareaKeyboardEvent) => void;
+  onLineChange?: (event: UPTextareaLineEvent) => void;
 
   constructor(options?: UPTextareaOptions) {
     if (options === undefined) {
@@ -112,6 +128,8 @@ export class UPTextareaProps {
     this.onConfirm = options.onConfirm;
     this.onFocus = options.onFocus;
     this.onBlur = options.onBlur;
+    this.onKeyboardHeightChange = options.onKeyboardHeightChange;
+    this.onLineChange = options.onLineChange;
   }
 }
 
@@ -136,6 +154,7 @@ function rawNumber(value: UPRawValue, fallback: number): number {
 export struct UPTextarea {
   @Prop props: UPTextareaProps = new UPTextareaProps();
   @State private innerValue: string = '';
+  private lastLineCount: number = 1;
 
   aboutToAppear(): void {
     this.innerValue = this.currentValue();
@@ -164,7 +183,7 @@ export struct UPTextarea {
 
   private textareaColor(): string {
     const style = UPStyle.parse(this.props.customStyle);
-    return style.color ?? UP_DEFAULT_THEME.main;
+    return style.color ?? UPColor.neutral('main', '#303133');
   }
 
   private textareaHeight(): number | string {
@@ -197,6 +216,23 @@ export struct UPTextarea {
     return style.width ?? '100%';
   }
 
+  /**
+   * 上游 linechange 由平台在行数变化时上报；ArkUI 没有对应回调，改按换行符数量推断。
+   * Upstream linechange comes from the platform; here it is derived from newline counts.
+   */
+  private trackLineChange(): void {
+    const lines: number = this.innerValue.split('\n').length;
+    if (lines === this.lastLineCount) {
+      return;
+    }
+    this.lastLineCount = lines;
+    const boxHeight: number | string = this.textareaHeight();
+    this.props.onLineChange?.({
+      height: typeof boxHeight === 'number' ? boxHeight : UPUnit.parse(this.props.height, 375, 70),
+      lineCount: lines
+    });
+  }
+
   build() {
     Column({ space: 4 }) {
       TextArea({ text: this.innerValue, placeholder: rawText(this.props.placeholder) })
@@ -220,9 +256,16 @@ export struct UPTextarea {
         })
         .onChange((value: string): void => {
           this.setValue(value);
+          this.trackLineChange();
         })
         .onSubmit((enterKey: EnterKeyType): void => {
           this.props.onConfirm?.({ value: this.innerValue, key: String(enterKey) });
+        })
+        /** 上游 keyboardheightchange 由平台上报；ArkUI 只能在收起编辑态时给出 0 高度。/ Keyboard height. */
+        .onEditChange((isEditing: boolean): void => {
+          if (!isEditing) {
+            this.props.onKeyboardHeightChange?.({ height: 0, duration: 0 });
+          }
         })
       if (upBoolean(this.props.count, false)) {
         Text(String(this.innerValue.length) + '/' + String(this.maxLength()))

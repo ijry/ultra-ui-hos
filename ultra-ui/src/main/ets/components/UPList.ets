@@ -4,6 +4,12 @@ import { UPUnit } from '../core/UPUnit';
 import { UPCompatibilityDiagnostics, UP_SILENT_DIAGNOSTICS } from '../core/UPDiagnostics';
 import { UPListContext } from '../internal/UPListContexts';
 
+/** 上游 refresherpulling / refresherrestore / refresherabort 的共享载荷。/ Shared refresher payload. */
+export interface UPListRefresherEvent {
+  offset: number;
+  threshold: number;
+}
+
 export interface UPListScrollEvent {
   offset: number;
   viewportSize: number;
@@ -37,6 +43,9 @@ export interface UPListOptions {
   onScrollToUpper?: () => void;
   onRefresherRefresh?: () => void;
   onRefresherTriggeredChange?: (triggered: boolean) => void;
+  onRefresherPulling?: (event: UPListRefresherEvent) => void;
+  onRefresherRestore?: (event: UPListRefresherEvent) => void;
+  onRefresherAbort?: (event: UPListRefresherEvent) => void;
   contentBuilder?: () => void;
 }
 
@@ -67,6 +76,9 @@ export class UPListProps {
   onScrollToUpper?: () => void;
   onRefresherRefresh?: () => void;
   onRefresherTriggeredChange?: (triggered: boolean) => void;
+  onRefresherPulling?: (event: UPListRefresherEvent) => void;
+  onRefresherRestore?: (event: UPListRefresherEvent) => void;
+  onRefresherAbort?: (event: UPListRefresherEvent) => void;
   contentBuilder?: () => void;
 
   constructor(options?: UPListOptions) {
@@ -96,6 +108,9 @@ export class UPListProps {
     this.onScrollToLower = options.onScrollToLower;
     this.onScrollToUpper = options.onScrollToUpper;
     this.onRefresherRefresh = options.onRefresherRefresh;
+    this.onRefresherPulling = options.onRefresherPulling;
+    this.onRefresherRestore = options.onRefresherRestore;
+    this.onRefresherAbort = options.onRefresherAbort;
     this.onRefresherTriggeredChange = options.onRefresherTriggeredChange;
     this.contentBuilder = options.contentBuilder;
   }
@@ -109,6 +124,8 @@ export struct UPList {
   private lastOffset: number = -1;
   private lastUpperState: boolean = false;
   private lastLowerState: boolean = false;
+  private pulled: boolean = false;
+  private lastPullOffset: number = 0;
   @Builder private emptyBuilder() { Row().width(0).height(0) }
   @BuilderParam contentBuilder: () => void = this.emptyBuilder;
 
@@ -162,6 +179,29 @@ export struct UPList {
     this.props.onRefresherTriggeredChange?.(true);
   }
 
+  /**
+   * 上游三个下拉阶段事件：ArkUI List 没有独立的下拉手势回调，改由滚动位移判定。
+   * The three upstream refresher stages, derived from the scroll offset because
+   * ArkUI List exposes no dedicated pull callbacks.
+   */
+  private trackRefresher(offset: number): void {
+    if (!upBoolean(this.props.refresherEnabled, false)) return;
+    const threshold: number = Math.max(1, UPUnit.parse(this.props.refresherThreshold, 375, 45));
+    const event: UPListRefresherEvent = { offset, threshold };
+    if (offset < 0) {
+      this.props.onRefresherPulling?.(event);
+      this.pulled = true;
+      return;
+    }
+    if (!this.pulled) return;
+    this.pulled = false;
+    if (Math.abs(this.lastPullOffset) >= threshold) {
+      this.props.onRefresherRestore?.(event);
+      return;
+    }
+    this.props.onRefresherAbort?.(event);
+  }
+
   build() {
     List({ scroller: this.scroller }) {
       this.contentBuilder()
@@ -174,7 +214,11 @@ export struct UPList {
     .scrollBar(upBoolean(this.props.showScrollbar, false) ? BarState.On : BarState.Off)
     .enableScrollInteraction(upBoolean(this.props.scrollable, true))
     .onAppear((): void => { this.mounted(); })
-    .onDidScroll((scrollOffset: number, _scrollState: ScrollState): void => { this.handleScroll(scrollOffset); })
+    .onDidScroll((scrollOffset: number, _scrollState: ScrollState): void => {
+      this.handleScroll(scrollOffset);
+      this.lastPullOffset = scrollOffset;
+      this.trackRefresher(scrollOffset);
+    })
     .onReachStart((): void => {
       this.handleScroll(0);
       this.requestRefresh();

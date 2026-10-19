@@ -2,6 +2,8 @@ import { UPRawValue, UPStyleInput, UPBuilder, upBoolean } from '../core/UPTypes'
 import { UPStyle } from '../core/UPStyle';
 import { UPEdgeValues } from '../core/UPUnit';
 import { UP_DEFAULT_THEME } from '../core/UPTheme';
+import { UPSlotRegion } from '../internal/UPSlotRegion';
+import { UPColor } from '../core/UPColor';
 
 export interface UPCellGroupOptions {
   title?: UPRawValue;
@@ -9,6 +11,7 @@ export interface UPCellGroupOptions {
   inset?: UPRawValue;
   customStyle?: UPStyleInput;
   contentBuilder?: UPBuilder;
+  titleBuilder?: UPBuilder;
 }
 
 export class UPCellGroupProps {
@@ -17,6 +20,7 @@ export class UPCellGroupProps {
   inset: UPRawValue = false;
   customStyle: UPStyleInput = undefined;
   contentBuilder?: UPBuilder;
+  titleBuilder?: UPBuilder;
 
   constructor(options?: UPCellGroupOptions) {
     if (options === undefined) {
@@ -27,6 +31,7 @@ export class UPCellGroupProps {
     this.inset = options.inset ?? this.inset;
     this.customStyle = options.customStyle;
     this.contentBuilder = options.contentBuilder;
+    this.titleBuilder = options.titleBuilder;
   }
 }
 
@@ -68,26 +73,33 @@ export struct UPCellGroup {
   @Builder
   private content() {
     Column() {
-      if (this.title().length > 0) {
+      if (this.props.titleBuilder !== undefined) {
+        this.titleRegion()
+      } else if (this.title().length > 0) {
         Text(this.title())
           .width('100%')
           .fontSize(14)
-          .fontColor(UP_DEFAULT_THEME.tips)
+          .fontColor(UPColor.neutral('tips', '#909399'))
           .margin({ bottom: 8 })
       }
       Column() {
         this.contentBuilder()
       }
       .width('100%')
-      .backgroundColor('#ffffff')
+      .backgroundColor(UPColor.adaptive('#ffffff', 'card-bg-color'))
       .borderWidth(upBoolean(this.props.border, true) ? 1 : 0)
-      .borderColor('#eeeeee')
+      .borderColor(UPColor.adaptive('#eeeeee', 'border-color'))
       .borderRadius(this.groupRadius())
       .clip(true)
     }
     .width('100%')
     .padding(this.groupPadding())
     .margin(this.groupMargin())
+  }
+
+  @Builder
+  private titleRegion() {
+    UPSlotRegion({ contentBuilder: this.props.titleBuilder })
   }
 
   build() {

@@ -76,7 +76,7 @@ export struct UPTabs {
       if (this.current() === index) Column().width(UPUnit.parse(this.props.lineWidth, 375, 20)).height(UPUnit.parse(this.props.lineHeight, 375, 3)).backgroundColor(UPColor.parse(this.props.lineColor, UP_DEFAULT_THEME, '#3c9cff')).borderRadius(2)
     }.height(44).padding(UPStyle.parse(this.props.itemStyle).padding ?? { left: 14, right: 14 })
       .justifyContent(FlexAlign.Center).opacity(upBoolean(this.props.list[index].disabled, false) ? 0.45 : 1)
-      .backgroundColor(this.shape().length > 0 && this.current() === index ? '#ecf5ff' : 'transparent')
+      .backgroundColor(this.shape().length > 0 && this.current() === index ? UPColor.adaptive('#ecf5ff', 'primary-light') : 'transparent')
       .borderRadius(this.shape() === 'capsule' || this.shape() === 'tag' ? 18 : 4)
       .onClick(() => this.tabsContext.requestSelect(index))
       .gesture(LongPressGesture().onAction(() => this.tabsContext.requestLongPress(index)))

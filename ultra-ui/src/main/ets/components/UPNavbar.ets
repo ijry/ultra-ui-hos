@@ -49,7 +49,9 @@ export struct UPNavbar {
   private resolvedStyle(): UPStyleResult { return UPStyle.parse(this.props.customStyle); }
   private topInset(): number { return upBoolean(this.props.safeAreaInsetTop, true) ? 0 : 0; }
   private barHeight(): number { return this.resolvedStyle().height ?? UPUnit.parse(this.props.height, 375, 44); }
-  private bg(): string { return UPColor.parse(this.props.bgColor, UP_DEFAULT_THEME, '#ffffff'); }
+  private bg(): string {
+    return UPColor.parse(this.props.bgColor, UP_DEFAULT_THEME, UPColor.adaptive('#ffffff', 'navbar-bg-color'));
+  }
   private title(): string { return String(this.props.title ?? ''); }
   private clickLeft(): void { this.props.onLeftClick?.(); if (upBoolean(this.props.autoBack, false)) this.props.navigationAdapter?.navigateBack?.(); }
   private clickRight(): void { this.props.onRightClick?.(); }

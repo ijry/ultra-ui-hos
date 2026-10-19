@@ -1,8 +1,9 @@
-import { UPRawValue, UPStyleInput, upBoolean, upString } from '../core/UPTypes';
+import { UPBuilder, UPRawValue, UPStyleInput, upBoolean, upString } from '../core/UPTypes';
 import { UPColor } from '../core/UPColor';
 import { UPStyle } from '../core/UPStyle';
 import { UPUnit } from '../core/UPUnit';
 import { UP_DEFAULT_THEME } from '../core/UPTheme';
+import { UPSlotRegion } from '../internal/UPSlotRegion';
 
 export interface UPTagCloseEvent {
   name: UPRawValue;
@@ -33,6 +34,9 @@ export interface UPTagOptions {
   customStyle?: UPStyleInput;
   onClick?: (name: UPRawValue) => void;
   onClose?: (event: UPTagCloseEvent) => void;
+  contentBuilder?: UPBuilder;
+  defaultBuilder?: UPBuilder;
+  iconBuilder?: UPBuilder;
 }
 
 export class UPTagProps {
@@ -60,6 +64,9 @@ export class UPTagProps {
   customStyle: UPStyleInput = undefined;
   onClick?: (name: UPRawValue) => void;
   onClose?: (event: UPTagCloseEvent) => void;
+  contentBuilder?: UPBuilder;
+  defaultBuilder?: UPBuilder;
+  iconBuilder?: UPBuilder;
 
   constructor(options?: UPTagOptions) {
     if (options === undefined) {
@@ -89,6 +96,9 @@ export class UPTagProps {
     this.customStyle = options.customStyle;
     this.onClick = options.onClick;
     this.onClose = options.onClose;
+    this.contentBuilder = options.contentBuilder;
+    this.defaultBuilder = options.defaultBuilder;
+    this.iconBuilder = options.iconBuilder;
   }
 }
 
@@ -164,15 +174,23 @@ export struct UPTag {
   @Builder
   private content() {
     Row({ space: 4 }) {
-      if (this.iconName().length > 0) {
+      if (this.props.iconBuilder !== undefined) {
+        this.iconRegion()
+      } else if (this.iconName().length > 0) {
         Text('•')
           .fontSize(this.sizeName() === 'large' ? 16 : 13)
           .fontColor(upString(this.props.iconColor, this.textColor()))
       }
       if (upBoolean(this.props.show, true)) {
-        Text(this.label())
-          .fontSize(UPUnit.parse(this.props.textSize, 375, this.sizeName() === 'large' ? 15 : 12))
-          .fontColor(this.textColor())
+        if (this.props.contentBuilder !== undefined) {
+          this.contentRegion()
+        } else if (this.props.defaultBuilder !== undefined) {
+          this.defaultRegion()
+        } else {
+          Text(this.label())
+            .fontSize(UPUnit.parse(this.props.textSize, 375, this.sizeName() === 'large' ? 15 : 12))
+            .fontColor(this.textColor())
+        }
         if (upBoolean(this.props.closable, false)) {
           Text('×')
             .fontSize(13)
@@ -189,6 +207,21 @@ export struct UPTag {
     .borderRadius(this.styleRadius())
     .opacity(!upBoolean(this.props.show, true) ? 0 : (upBoolean(this.props.disabled, false) ? 0.5 : 1))
     .onClick(() => this.props.onClick?.(this.props.name))
+  }
+
+  @Builder
+  private contentRegion() {
+    UPSlotRegion({ contentBuilder: this.props.contentBuilder })
+  }
+
+  @Builder
+  private defaultRegion() {
+    UPSlotRegion({ contentBuilder: this.props.defaultBuilder })
+  }
+
+  @Builder
+  private iconRegion() {
+    UPSlotRegion({ contentBuilder: this.props.iconBuilder })
   }
 
   build() {

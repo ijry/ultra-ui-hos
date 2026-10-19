@@ -282,10 +282,11 @@ def main() -> None:
     readme = read(README)
     for phrase in (
         "阶段 6",
-        "69 个已实现组件/控制器",
-        "68 个组件 + 1 个控制器",
-        "67 条组件示例路由",
+        "80 个已实现组件/控制器",
+        "78 个组件 + 2 个控制器",
+        "78 条组件示例路由",
         "Components J",
+        "Components K",
         "phase-6.md",
         "UPList",
         "UPIndexList",
